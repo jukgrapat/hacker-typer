@@ -1731,13 +1731,67 @@ function fireRandomVisual(){
 }
 
 function rndScreenPos(w, h){
-  // สุ่มตำแหน่ง ไม่กระจุกกลาง
-  const margin = 30;
-  const maxX = window.innerWidth - w - margin;
-  const maxY = window.innerHeight - h - margin;
+  // สุ่มตำแหน่งเฉพาะขอบจอ — หลีกเลี่ยงพื้นที่กลาง (ที่โค้ดวิ่ง)
+  // จอแบ่งเป็น 4 zone: ซ้าย-ขวา-บน-ล่าง (เป็นแถบรอบขอบ)
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  const topbarH = 32;
+  const statusH = 24;
+  const sidebarW = document.getElementById('sidebar').classList.contains('off') ? 0 : 230;
+
+  // พื้นที่ที่ใช้ได้: หลังจาก topbar/statusbar/sidebar
+  const usableLeft = sidebarW + 8;
+  const usableTop = topbarH + 8;
+  const usableRight = W - 8;
+  const usableBot = H - statusH - 8;
+  const usableW = usableRight - usableLeft;
+  const usableH = usableBot - usableTop;
+
+  // ถ้า popup ใหญ่กว่าพื้นที่ทั้งหมด → วางมุมบนซ้าย
+  if(w >= usableW || h >= usableH){
+    return { x: usableLeft, y: usableTop };
+  }
+
+  // เลือก zone: บน, ล่าง, ขวาสุด — หลีกเลี่ยงกลาง
+  // (ซ้ายมีไซด์บาร์อยู่แล้ว เลยข้าม)
+  const zones = [];
+
+  // zone บน (ใต้ topbar, สูงประมาณ 25% ของพื้นที่ใช้ได้ หรือสูง popup เอง)
+  const topZoneH = Math.max(h, usableH * 0.28);
+  if(topZoneH + h <= usableH){
+    zones.push({
+      xMin: usableLeft, xMax: usableRight - w,
+      yMin: usableTop, yMax: usableTop + Math.max(topZoneH - h, 0)
+    });
+  }
+
+  // zone ล่าง
+  const botZoneH = Math.max(h, usableH * 0.28);
+  if(botZoneH + h <= usableH){
+    zones.push({
+      xMin: usableLeft, xMax: usableRight - w,
+      yMin: usableBot - botZoneH, yMax: usableBot - h
+    });
+  }
+
+  // zone ขวาสุด (แถบขวา ~30% ของกว้าง)
+  const rightZoneW = Math.max(w, usableW * 0.32);
+  if(rightZoneW + w <= usableW){
+    zones.push({
+      xMin: usableRight - rightZoneW, xMax: usableRight - w,
+      yMin: usableTop, yMax: usableBot - h
+    });
+  }
+
+  // ถ้าไม่มี zone ไหนใช้ได้ (จอเล็กมาก) — fallback มุมบนซ้าย
+  if(zones.length === 0){
+    return { x: usableLeft, y: usableTop };
+  }
+
+  const zone = zones[Math.floor(Math.random() * zones.length)];
   return {
-    x: margin + Math.random() * Math.max(maxX - margin, 0),
-    y: margin + Math.random() * Math.max(maxY - margin, 0)
+    x: zone.xMin + Math.random() * Math.max(zone.xMax - zone.xMin, 0),
+    y: zone.yMin + Math.random() * Math.max(zone.yMax - zone.yMin, 0)
   };
 }
 
