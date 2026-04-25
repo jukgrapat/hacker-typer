@@ -490,179 +490,40 @@ body{ animation:screenFlicker 7s infinite; }
 /* particle canvas */
 #pCanvas{ position:fixed; inset:0; pointer-events:none; z-index:500; }
 
-/* ============== HIGH-TECH FX OVERLAYS ============== */
-.fx-ov{
-  position:fixed; inset:0; pointer-events:none;
-  z-index:550; overflow:hidden;
-  animation:fxFadeIn .15s;
+/* ============== ASCII POPUP (Awesome Type style) ============== */
+.ascii-pop{
+  position:fixed;
+  z-index:560;
+  pointer-events:none;
+  animation:asciiIn .2s ease-out;
+  background:rgba(0,0,0,.85);
+  padding:0;
+  border:1px solid currentColor;
 }
-@keyframes fxFadeIn{ from{opacity:0} to{opacity:1} }
-@keyframes fxFadeOut{ to{opacity:0} }
-
-.fx-label{
-  position:absolute; bottom:12%; left:50%; transform:translateX(-50%);
-  font-family:'Major Mono Display',monospace;
-  font-size:14px; letter-spacing:6px; padding:10px 24px;
-  border:1px solid; background:rgba(0,0,0,.5);
-  animation:fxLabelIn .4s;
-  white-space:nowrap;
-}
-@keyframes fxLabelIn{
-  from{transform:translate(-50%,20px);opacity:0}
-  to{transform:translate(-50%,0);opacity:1}
-}
-
-/* SCAN LINE */
-.fx-scanline{
-  position:absolute; left:0; right:0; height:4px;
-  animation:fxScan 1.2s ease-in-out;
-}
-@keyframes fxScan{
-  0%{top:-4px}
-  100%{top:100%}
-}
-
-/* RADAR */
-.fx-radar{
-  position:absolute; top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  width:min(60vw,500px); height:min(60vw,500px);
-}
-.fx-radar-sweep{ animation:fxSpin 1.5s linear infinite; }
-@keyframes fxSpin{ to{transform:rotate(360deg)} }
-.fx-radar-blip{
-  animation:fxBlip 1s infinite;
-}
-@keyframes fxBlip{
-  0%,100%{opacity:0}
-  50%{opacity:1}
-}
-
-/* MATRIX RAIN */
-.fx-mxwrap{ position:absolute; inset:0; }
-.fx-mxcol{
-  position:absolute; top:-200px;
-  font-family:'JetBrains Mono',monospace; font-size:16px;
-  line-height:1.4; text-shadow:0 0 6px currentColor;
-  animation:fxRain linear infinite;
-}
-@keyframes fxRain{
-  from{transform:translateY(0)}
-  to{transform:translateY(120vh)}
-}
-
-/* WIREFRAME GLOBE */
-.fx-globe{
-  position:absolute; top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  width:min(60vw,500px); height:min(60vw,500px);
-}
-.fx-globe-spin{ animation:fxSpin 3s linear infinite; }
-
-/* DATA STREAM */
-.fx-stream{ position:absolute; inset:0; }
-.fx-pkt{
-  position:absolute; left:-150px;
-  font-family:'JetBrains Mono',monospace; font-size:13px;
+.ascii-pop pre{
+  font-family:'JetBrains Mono','Share Tech Mono',monospace;
+  font-size:13px;
+  line-height:1.25;
+  margin:0;
+  padding:6px 8px;
+  white-space:pre;
   text-shadow:0 0 6px currentColor;
-  animation:fxStream linear forwards;
-  white-space:nowrap;
+  letter-spacing:0;
 }
-@keyframes fxStream{
-  to{ left:calc(100% + 100px); }
+.ascii-pop.fx-fg{ color:var(--fg); box-shadow:0 0 20px var(--fg),0 0 40px rgba(0,255,102,.2); }
+.ascii-pop.fx-acc{ color:var(--acc); box-shadow:0 0 20px var(--acc),0 0 40px rgba(255,0,68,.2); }
+.ascii-pop.fx-warn{ color:var(--warn); box-shadow:0 0 20px var(--warn); }
+.ascii-pop.fx-info{ color:var(--info); box-shadow:0 0 20px var(--info); }
+
+@keyframes asciiIn{
+  from{ transform:scale(.8); opacity:0; }
+  to{ transform:scale(1); opacity:1; }
+}
+@keyframes asciiOut{
+  to{ transform:scale(.95); opacity:0; }
 }
 
-/* BIOMETRIC */
-.fx-bio{
-  position:absolute; top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  width:240px; height:280px;
-  border:2px solid; background:rgba(0,0,0,.4);
-  overflow:hidden;
-  animation:fxBioPulse 2s;
-}
-.fx-bio svg{ width:100%; height:100%; }
-@keyframes fxBioPulse{
-  0%,100%{transform:translate(-50%,-50%) scale(1)}
-  50%{transform:translate(-50%,-50%) scale(1.04)}
-}
-.fx-bio-scan{
-  position:absolute; left:0; right:0; height:4px;
-  animation:fxBioScan 2s ease-in-out;
-}
-@keyframes fxBioScan{
-  0%{top:0}
-  50%{top:calc(100% - 4px)}
-  100%{top:0}
-}
-
-/* TARGET LOCK */
-.fx-target{
-  position:absolute;
-  width:120px; height:120px;
-  transform:translate(-50%,-50%);
-  border:1px dashed;
-  animation:fxTargetIn .4s, fxTargetPulse 1s .4s infinite;
-}
-@keyframes fxTargetIn{
-  from{transform:translate(-50%,-50%) scale(2);opacity:0}
-  to{transform:translate(-50%,-50%) scale(1);opacity:1}
-}
-@keyframes fxTargetPulse{
-  0%,100%{box-shadow:0 0 20px var(--acc)}
-  50%{box-shadow:0 0 40px var(--acc)}
-}
-.fx-tcorner{
-  position:absolute; width:20px; height:20px;
-  border:2px solid;
-}
-.fx-tcorner.tl{ top:-2px; left:-2px; border-right:none; border-bottom:none; }
-.fx-tcorner.tr{ top:-2px; right:-2px; border-left:none; border-bottom:none; }
-.fx-tcorner.bl{ bottom:-2px; left:-2px; border-right:none; border-top:none; }
-.fx-tcorner.br{ bottom:-2px; right:-2px; border-left:none; border-top:none; }
-.fx-tcross{
-  position:absolute; left:50%; top:50%;
-  width:140%; height:1px; transform:translate(-50%,-50%);
-}
-.fx-tcross.v{ width:1px; height:140%; }
-.fx-tinfo{
-  position:absolute; transform:translateY(-50%);
-  font-family:'JetBrains Mono',monospace; font-size:11px;
-  letter-spacing:1px; line-height:1.7;
-  padding:8px 12px; border:1px solid;
-  background:rgba(0,0,0,.5);
-  animation:fxFadeIn .5s .3s both;
-}
-
-/* DECRYPT */
-.fx-decrypt{
-  position:absolute; top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  text-align:center;
-  font-family:'Major Mono Display',monospace;
-}
-.fx-dlabel{
-  font-size:12px; letter-spacing:6px;
-  margin-bottom:18px;
-  animation:blink 1s steps(2) infinite;
-}
-.fx-dtext{
-  font-size:36px; letter-spacing:8px;
-  margin-bottom:24px; min-height:48px;
-}
-.fx-dprog{
-  width:300px; height:6px;
-  border:1px solid;
-  margin:0 auto;
-  overflow:hidden;
-}
-.fx-dprog-fill{
-  height:100%; width:0;
-  animation:fxDprog 1.8s linear forwards;
-}
-@keyframes fxDprog{ to{ width:100%; } }
-
-/* SPACE WAVE */
+/* SPACE wave + ribbon (เก็บไว้เหมือนเดิม) */
 .fx-wave{
   position:fixed; top:0; bottom:0; left:0;
   width:200px;
@@ -1643,220 +1504,216 @@ function handleKey(e){
   }
 }
 
-// ========== HIGH-TECH VISUAL EFFECTS (Enter / Space) ==========
-const VISUALS = ['scan', 'radar', 'matrix', 'wireframe', 'datastream', 'biometric', 'targetlock', 'decrypt'];
-let lastVisualIdx = -1;
+// ========== ASCII POPUP EFFECTS (Enter key) ==========
+// แนว Awesome Type — กรอบ ASCII art retro terminal สุ่มตำแหน่ง
 
+const ASCII_POPUPS = [
+  {
+    title: 'ACCESS GRANTED',
+    color: 'fg',
+    body: () => [
+      'AUTHENTICATION SUCCESSFUL',
+      '',
+      'USER     : r00t@nexus',
+      'PRIV     : 0xFFFF',
+      'SESSION  : 0x' + rndHex(8),
+      '',
+      pBar(100) + ' COMPLETE'
+    ]
+  },
+  {
+    title: 'ACCESS DENIED',
+    color: 'acc',
+    body: () => [
+      'AUTHENTICATION FAILURE',
+      '',
+      'INVALID CREDENTIALS',
+      'FIREWALL ENGAGED',
+      'TRACE INITIATED',
+      '',
+      pBar(rn(40)) + ' BLOCKED'
+    ]
+  },
+  {
+    title: 'DECRYPTING',
+    color: 'info',
+    body: () => [
+      'CIPHER : AES-256-GCM',
+      'KEY EX : ECDH P-384',
+      '',
+      pBar(rn(100)) + ' ' + (rn(100)+200) + 'GH/s',
+      '',
+      'EST. ' + rn(99) + 's REMAINING'
+    ]
+  },
+  {
+    title: 'PASSWORD CRACKED',
+    color: 'fg',
+    body: () => {
+      const p = ['p4ssw0rd', 'admin123', 'qwerty!@#', 'r00t_2024', 'hunter22'];
+      return [
+        'TARGET   : ' + rndIP(),
+        'METHOD   : DICTIONARY ATK',
+        'ATTEMPTS : ' + (rn(99000)+1000),
+        '',
+        'PASSWORD : ' + p[rn(p.length)],
+        '',
+        pBar(100) + ' DONE'
+      ];
+    }
+  },
+  {
+    title: 'INTRUSION DETECTED',
+    color: 'warn',
+    body: () => [
+      'ANOMALY ON PORT ' + rn(65535),
+      'SOURCE : ' + rndIP(),
+      'THREAT : CRITICAL',
+      '',
+      'COUNTERMEASURES ACTIVE',
+      pBar(rn(80)+20)
+    ]
+  },
+  {
+    title: 'PAYLOAD INJECTED',
+    color: 'fg',
+    body: () => [
+      'TARGET : ' + rndIP(),
+      'EXPLOIT: CVE-2024-' + rn(9999),
+      'BYTES  : ' + (rn(9999)) + ' KB',
+      '',
+      pBar(100) + ' DEPLOYED'
+    ]
+  },
+  {
+    title: 'KERNEL PANIC',
+    color: 'acc',
+    body: () => [
+      '[PANIC] not syncing',
+      '',
+      'RIP    : 0x' + rndHex(12),
+      'OOPS   : 0001 [#1] SMP',
+      'MODULES: stealth_rk',
+      '',
+      'SYSTEM HALTED'
+    ]
+  },
+  {
+    title: 'DATA EXTRACTED',
+    color: 'info',
+    body: () => [
+      'SOURCE : target.db',
+      'RECORDS: ' + (rn(99999)+10000),
+      'SIZE   : ' + (rn(999)) + '.' + rn(99) + ' MB',
+      '',
+      pBar(100) + ' UPLOADED',
+      '',
+      'CHANNEL: TOR/I2P'
+    ]
+  },
+  {
+    title: 'CONNECTION ESTAB',
+    color: 'fg',
+    body: () => [
+      'PROTOCOL : SSH-2.0',
+      'TARGET   : ' + rndIP() + ':22',
+      'CIPHER   : chacha20',
+      'LATENCY  : ' + rn(99) + 'ms',
+      '',
+      pBar(100) + ' SECURE'
+    ]
+  },
+  {
+    title: 'ROOTKIT DEPLOYED',
+    color: 'warn',
+    body: () => [
+      'MODULE : stealth_rk.ko',
+      'KERNEL : 6.' + rn(9) + '.' + rn(99),
+      'HOOK   : sys_call_table',
+      'STATUS : HIDDEN',
+      '',
+      pBar(100) + ' PERSISTENT'
+    ]
+  }
+];
+
+let lastPopupIdx = -1;
 function fireRandomVisual(){
-  // อย่าซ้ำของก่อนหน้า
   let idx;
-  do { idx = Math.floor(Math.random() * VISUALS.length); } while(idx === lastVisualIdx && VISUALS.length > 1);
-  lastVisualIdx = idx;
-  const fx = VISUALS[idx];
-  const fxFn = {
-    scan: fxScanLine,
-    radar: fxRadar,
-    matrix: fxMatrixRain,
-    wireframe: fxWireframe,
-    datastream: fxDataStream,
-    biometric: fxBiometric,
-    targetlock: fxTargetLock,
-    decrypt: fxDecrypt
-  };
-  fxFn[fx]();
+  do { idx = rn(ASCII_POPUPS.length); } while(idx === lastPopupIdx && ASCII_POPUPS.length > 1);
+  lastPopupIdx = idx;
+  spawnAsciiPopup(ASCII_POPUPS[idx]);
 }
 
-function makeOverlay(){
-  const ov = document.createElement('div');
-  ov.className = 'fx-ov';
-  document.body.appendChild(ov);
-  return ov;
-}
-function killOverlay(ov, delay = 1800){
-  setTimeout(()=>{
-    ov.style.animation = 'fxFadeOut .3s forwards';
-    setTimeout(()=>ov.remove(), 300);
-  }, delay);
-}
+function spawnAsciiPopup(cfg){
+  const lines = cfg.body();
+  // คำนวณความกว้าง: หาบรรทัดยาวสุด
+  const maxLen = Math.max(cfg.title.length, ...lines.map(l => l.length));
+  const innerWidth = maxLen + 4;
 
-// 1. SCAN LINE — เส้นสแกนพาดจอ
-function fxScanLine(){
-  const ov = makeOverlay();
-  const fg = fgColor();
-  ov.innerHTML = `
-    <div class="fx-scanline" style="background:linear-gradient(180deg,transparent,${fg},transparent);box-shadow:0 0 30px ${fg},0 0 60px ${fg}"></div>
-    <div class="fx-label" style="color:${fg};border-color:${fg}">▸ SCANNING SUBJECT ▸</div>
-  `;
-  killOverlay(ov, 1500);
-}
+  // สร้าง ASCII frame
+  const top = '╔' + '═'.repeat(innerWidth) + '╗';
+  const titleBar = '║ ' + cfg.title.padEnd(innerWidth - 2, ' ') + ' ║';
+  const sep = '╠' + '═'.repeat(innerWidth) + '╣';
+  const bot = '╚' + '═'.repeat(innerWidth) + '╝';
+  const bodyLines = lines.map(l => '║ ' + l.padEnd(innerWidth - 2, ' ') + ' ║');
 
-// 2. RADAR PING — radar sweep
-function fxRadar(){
-  const ov = makeOverlay();
-  const fg = fgColor();
-  ov.innerHTML = `
-    <svg viewBox="0 0 400 400" class="fx-radar" style="filter:drop-shadow(0 0 8px ${fg})">
-      <circle cx="200" cy="200" r="50" fill="none" stroke="${fg}" stroke-width="1" opacity=".3"/>
-      <circle cx="200" cy="200" r="100" fill="none" stroke="${fg}" stroke-width="1" opacity=".3"/>
-      <circle cx="200" cy="200" r="150" fill="none" stroke="${fg}" stroke-width="1" opacity=".3"/>
-      <circle cx="200" cy="200" r="190" fill="none" stroke="${fg}" stroke-width="1.5"/>
-      <line x1="200" y1="10" x2="200" y2="390" stroke="${fg}" stroke-width=".5" opacity=".5"/>
-      <line x1="10" y1="200" x2="390" y2="200" stroke="${fg}" stroke-width=".5" opacity=".5"/>
-      <g class="fx-radar-sweep" style="transform-origin:200px 200px">
-        <path d="M200,200 L200,10 A190,190 0 0 1 380,180 Z" fill="${fg}" opacity=".25"/>
-      </g>
-      <circle cx="${120+Math.random()*160}" cy="${120+Math.random()*160}" r="4" fill="${fg}" class="fx-radar-blip"/>
-      <circle cx="${120+Math.random()*160}" cy="${120+Math.random()*160}" r="3" fill="${fg}" class="fx-radar-blip" style="animation-delay:.4s"/>
-    </svg>
-    <div class="fx-label" style="color:${fg};border-color:${fg}">◉ RADAR ACTIVE — 3 CONTACTS ◉</div>
-  `;
-  killOverlay(ov, 2000);
-}
+  const fullText = [top, titleBar, sep, ...bodyLines, bot].join('\n');
 
-// 3. MATRIX RAIN — code drop
-function fxMatrixRain(){
-  const ov = makeOverlay();
-  const fg = fgColor();
-  const chars = 'ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇ01';
-  let cols = '';
-  const colCount = Math.floor(innerWidth / 22);
-  for(let i = 0; i < colCount; i++){
-    let lines = '';
-    const len = 8 + Math.floor(Math.random() * 14);
-    for(let j = 0; j < len; j++){
-      lines += chars[Math.floor(Math.random()*chars.length)] + '<br>';
+  const el = document.createElement('div');
+  el.className = 'ascii-pop fx-' + cfg.color;
+
+  // สุ่มตำแหน่ง — ไม่กลาง
+  const positions = [
+    { x: 5, y: 8 },     // top-left
+    { x: 55, y: 8 },    // top-right
+    { x: 30, y: 6 },    // top-mid
+    { x: 5, y: 45 },    // mid-left
+    { x: 60, y: 40 },   // mid-right
+    { x: 8, y: 70 },    // bot-left
+    { x: 50, y: 72 },   // bot-right
+    { x: 35, y: 50 },   // mid
+    { x: 15, y: 25 },
+    { x: 65, y: 60 },
+  ];
+  const pos = positions[rn(positions.length)];
+  // เพิ่ม jitter เล็กน้อย
+  const jx = (Math.random() - 0.5) * 8;
+  const jy = (Math.random() - 0.5) * 6;
+  el.style.left = (pos.x + jx) + '%';
+  el.style.top = (pos.y + jy) + '%';
+
+  el.innerHTML = '<pre>' + escapeHTML(fullText) + '</pre>';
+  document.body.appendChild(el);
+
+  // typing animation: ให้ ASCII ทยอยพิมพ์
+  const pre = el.querySelector('pre');
+  pre.textContent = '';
+  let i = 0;
+  const fullLen = fullText.length;
+  const speed = Math.max(2, Math.floor(fullLen / 60));
+  const typeInterval = setInterval(() => {
+    i += speed;
+    pre.textContent = fullText.substring(0, i);
+    if(i >= fullLen){
+      clearInterval(typeInterval);
+      pre.textContent = fullText;
     }
-    cols += `<div class="fx-mxcol" style="left:${i*22}px;animation-delay:${Math.random()*.5}s;animation-duration:${1+Math.random()*1.2}s;color:${fg}">${lines}</div>`;
-  }
-  ov.innerHTML = `<div class="fx-mxwrap">${cols}</div><div class="fx-label" style="color:${fg};border-color:${fg}">▼ DOWNLOADING THE MATRIX ▼</div>`;
-  killOverlay(ov, 1800);
+  }, 20);
+
+  // auto remove
+  const ttl = 2200 + Math.random() * 1500;
+  setTimeout(() => {
+    el.style.animation = 'asciiOut .25s forwards';
+    setTimeout(() => el.remove(), 250);
+  }, ttl);
+
+  S.popups++;
+  document.getElementById('stPopups').textContent = S.popups;
 }
 
-// 4. WIREFRAME GLOBE — 3D rotating globe
-function fxWireframe(){
-  const ov = makeOverlay();
-  const fg = fgColor();
-  ov.innerHTML = `
-    <svg viewBox="0 0 400 400" class="fx-globe" style="filter:drop-shadow(0 0 10px ${fg})">
-      <g class="fx-globe-spin" style="transform-origin:200px 200px">
-        <ellipse cx="200" cy="200" rx="160" ry="160" fill="none" stroke="${fg}" stroke-width="1.5"/>
-        <ellipse cx="200" cy="200" rx="160" ry="40" fill="none" stroke="${fg}" stroke-width="1" opacity=".7"/>
-        <ellipse cx="200" cy="200" rx="160" ry="80" fill="none" stroke="${fg}" stroke-width="1" opacity=".5"/>
-        <ellipse cx="200" cy="200" rx="160" ry="120" fill="none" stroke="${fg}" stroke-width="1" opacity=".4"/>
-        <ellipse cx="200" cy="200" rx="40" ry="160" fill="none" stroke="${fg}" stroke-width="1" opacity=".7"/>
-        <ellipse cx="200" cy="200" rx="80" ry="160" fill="none" stroke="${fg}" stroke-width="1" opacity=".5"/>
-        <ellipse cx="200" cy="200" rx="120" ry="160" fill="none" stroke="${fg}" stroke-width="1" opacity=".4"/>
-      </g>
-      <circle cx="80" cy="200" r="4" fill="${fg}"><animate attributeName="r" values="4;8;4" dur="1s" repeatCount="indefinite"/></circle>
-      <circle cx="320" cy="180" r="4" fill="${fg}"><animate attributeName="r" values="4;8;4" dur="1.2s" repeatCount="indefinite"/></circle>
-      <circle cx="240" cy="80" r="4" fill="${fg}"><animate attributeName="r" values="4;8;4" dur=".8s" repeatCount="indefinite"/></circle>
-    </svg>
-    <div class="fx-label" style="color:${fg};border-color:${fg}">◇ GLOBAL NETWORK MAP ◇</div>
-  `;
-  killOverlay(ov, 2200);
-}
-
-// 5. DATA STREAM — flowing data packets
-function fxDataStream(){
-  const ov = makeOverlay();
-  const fg = fgColor();
-  let packets = '';
-  for(let i = 0; i < 30; i++){
-    const y = Math.random() * 100;
-    const delay = Math.random() * 1.5;
-    const dur = 0.6 + Math.random() * 0.8;
-    const txt = '0x' + Math.floor(Math.random()*0xFFFFFF).toString(16).toUpperCase().padStart(6,'0');
-    packets += `<div class="fx-pkt" style="top:${y}%;animation-delay:${delay}s;animation-duration:${dur}s;color:${fg}">${txt}</div>`;
-  }
-  ov.innerHTML = `<div class="fx-stream">${packets}</div><div class="fx-label" style="color:${fg};border-color:${fg}">⇉ DATA EXFILTRATION IN PROGRESS ⇉</div>`;
-  killOverlay(ov, 2200);
-}
-
-// 6. BIOMETRIC — fingerprint scan
-function fxBiometric(){
-  const ov = makeOverlay();
-  const fg = fgColor();
-  ov.innerHTML = `
-    <div class="fx-bio" style="border-color:${fg};box-shadow:0 0 30px ${fg}">
-      <svg viewBox="0 0 200 240" style="filter:drop-shadow(0 0 6px ${fg})">
-        <path d="M100,30 C70,30 50,60 50,100 C50,140 60,180 80,210" fill="none" stroke="${fg}" stroke-width="2"/>
-        <path d="M100,30 C130,30 150,60 150,100 C150,140 140,180 120,210" fill="none" stroke="${fg}" stroke-width="2"/>
-        <path d="M100,55 C80,55 70,80 70,110 C70,150 80,185 95,210" fill="none" stroke="${fg}" stroke-width="1.5"/>
-        <path d="M100,55 C120,55 130,80 130,110 C130,150 120,185 105,210" fill="none" stroke="${fg}" stroke-width="1.5"/>
-        <path d="M100,80 C88,80 85,100 85,120 C85,150 92,180 100,210" fill="none" stroke="${fg}" stroke-width="1.2"/>
-        <path d="M100,80 C112,80 115,100 115,120 C115,150 108,180 100,210" fill="none" stroke="${fg}" stroke-width="1.2"/>
-        <path d="M100,105 C95,108 95,140 100,180" fill="none" stroke="${fg}" stroke-width="1"/>
-      </svg>
-      <div class="fx-bio-scan" style="background:linear-gradient(180deg,transparent,${fg},transparent);box-shadow:0 0 15px ${fg}"></div>
-    </div>
-    <div class="fx-label" style="color:${fg};border-color:${fg}">⊙ BIOMETRIC SCAN — MATCH 99.7% ⊙</div>
-  `;
-  killOverlay(ov, 2200);
-}
-
-// 7. TARGET LOCK — crosshair tracking
-function fxTargetLock(){
-  const ov = makeOverlay();
-  const fg = fgColor();
-  const acc = getComputedStyle(document.body).getPropertyValue('--acc').trim();
-  const tx = 30 + Math.random() * 40;
-  const ty = 30 + Math.random() * 40;
-  ov.innerHTML = `
-    <div class="fx-target" style="left:${tx}%;top:${ty}%;border-color:${acc};box-shadow:0 0 20px ${acc}">
-      <div class="fx-tcorner tl" style="border-color:${acc}"></div>
-      <div class="fx-tcorner tr" style="border-color:${acc}"></div>
-      <div class="fx-tcorner bl" style="border-color:${acc}"></div>
-      <div class="fx-tcorner br" style="border-color:${acc}"></div>
-      <div class="fx-tcross" style="background:${acc}"></div>
-      <div class="fx-tcross v" style="background:${acc}"></div>
-    </div>
-    <div class="fx-tinfo" style="left:${Math.min(tx+12,75)}%;top:${ty}%;color:${acc};border-color:${acc}">
-      ▸ TARGET LOCKED<br>
-      ▸ COORD ${(tx*7.3).toFixed(2)}°N<br>
-      ▸ COORD ${(ty*4.1).toFixed(2)}°E<br>
-      ▸ ID #${Math.floor(Math.random()*9999).toString().padStart(4,'0')}
-    </div>
-  `;
-  killOverlay(ov, 2300);
-}
-
-// 8. DECRYPT — text scramble
-function fxDecrypt(){
-  const ov = makeOverlay();
-  const fg = fgColor();
-  const target = 'ACCESS GRANTED';
-  const chars = '!@#$%^&*()_+-=[]{}|;:,.<>?/~`ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  ov.innerHTML = `
-    <div class="fx-decrypt" style="color:${fg};text-shadow:0 0 20px ${fg}">
-      <div class="fx-dlabel">DECRYPTING...</div>
-      <div class="fx-dtext" id="fxDtext">${'X'.repeat(target.length)}</div>
-      <div class="fx-dprog" style="border-color:${fg}">
-        <div class="fx-dprog-fill" style="background:${fg};box-shadow:0 0 10px ${fg}"></div>
-      </div>
-    </div>
-  `;
-  // animate scramble
-  const el = ov.querySelector('#fxDtext');
-  let frame = 0;
-  const totalFrames = 20;
-  const interval = setInterval(()=>{
-    frame++;
-    let txt = '';
-    for(let i = 0; i < target.length; i++){
-      if(target[i] === ' '){ txt += ' '; continue; }
-      if(i < (frame / totalFrames) * target.length){
-        txt += target[i];
-      } else {
-        txt += chars[Math.floor(Math.random() * chars.length)];
-      }
-    }
-    el.textContent = txt;
-    if(frame >= totalFrames){
-      clearInterval(interval);
-      el.textContent = target;
-    }
-  }, 80);
-  killOverlay(ov, 2500);
+function escapeHTML(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 // ========== SPACE EFFECT — text glitch wave (no explosion) ==========
