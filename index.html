@@ -490,40 +490,249 @@ body{ animation:screenFlicker 7s infinite; }
 /* particle canvas */
 #pCanvas{ position:fixed; inset:0; pointer-events:none; z-index:500; }
 
-/* ============== ASCII POPUP (Awesome Type style) ============== */
-.ascii-pop{
+/* ============== VISUAL FX CARDS (Enter popups) ============== */
+.fx-card{
   position:fixed;
   z-index:560;
   pointer-events:none;
-  animation:asciiIn .2s ease-out;
-  background:rgba(0,0,0,.85);
-  padding:0;
-  border:1px solid currentColor;
-}
-.ascii-pop pre{
+  background:rgba(0,0,0,.88);
+  border:1px solid;
   font-family:'JetBrains Mono','Share Tech Mono',monospace;
-  font-size:13px;
-  line-height:1.25;
-  margin:0;
-  padding:6px 8px;
-  white-space:pre;
-  text-shadow:0 0 6px currentColor;
-  letter-spacing:0;
+  animation:fxIn .3s cubic-bezier(.6,.1,.4,1.4);
+  overflow:hidden;
 }
-.ascii-pop.fx-fg{ color:var(--fg); box-shadow:0 0 20px var(--fg),0 0 40px rgba(0,255,102,.2); }
-.ascii-pop.fx-acc{ color:var(--acc); box-shadow:0 0 20px var(--acc),0 0 40px rgba(255,0,68,.2); }
-.ascii-pop.fx-warn{ color:var(--warn); box-shadow:0 0 20px var(--warn); }
-.ascii-pop.fx-info{ color:var(--info); box-shadow:0 0 20px var(--info); }
-
-@keyframes asciiIn{
-  from{ transform:scale(.8); opacity:0; }
-  to{ transform:scale(1); opacity:1; }
+@keyframes fxIn{
+  0%{ transform:scale(.6); opacity:0; }
+  60%{ transform:scale(1.04); }
+  100%{ transform:scale(1); opacity:1; }
 }
-@keyframes asciiOut{
+@keyframes fxOut{
   to{ transform:scale(.95); opacity:0; }
 }
+.fx-card-bar{
+  color:var(--bg2);
+  padding:4px 10px;
+  font-size:9px; letter-spacing:2px;
+  display:flex; justify-content:space-between;
+  font-weight:700;
+}
+.fx-card-body{
+  padding:14px 16px;
+}
 
-/* SPACE wave + ribbon (เก็บไว้เหมือนเดิม) */
+/* ---- 1. LOADER ---- */
+.fx-loader-title{
+  font-size:11px; letter-spacing:2px;
+  margin-bottom:14px;
+  text-shadow:0 0 4px currentColor;
+  animation:blink 1.2s steps(2) infinite;
+}
+.fx-loader-spin{
+  position:relative;
+  width:60px; height:60px;
+  margin:0 auto 14px;
+}
+.fx-spin-ring{
+  position:absolute; inset:0;
+  border:2px solid transparent;
+  border-radius:50%;
+  animation:fxSpin 1s linear infinite;
+}
+.fx-spin-ring.r2{
+  inset:8px;
+  animation:fxSpin 1.6s linear reverse infinite;
+}
+@keyframes fxSpin{ to{ transform:rotate(360deg); } }
+.fx-spin-dot{
+  position:absolute; top:50%; left:50%;
+  width:6px; height:6px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+}
+.fx-loader-bar{
+  height:5px;
+  border:1px solid;
+  margin-bottom:6px;
+  overflow:hidden;
+}
+.fx-loader-fill{
+  height:100%; width:0;
+  animation:fxFill 2.4s linear forwards;
+}
+@keyframes fxFill{ to{ width:100%; } }
+.fx-loader-pct{
+  font-size:11px; text-align:right;
+  text-shadow:0 0 4px currentColor;
+  margin-bottom:8px;
+}
+.fx-loader-log{
+  font-size:9px; opacity:.7;
+  line-height:1.5;
+  min-height:42px;
+}
+
+/* ---- 2. BIOMETRIC HEAD ---- */
+.fx-bio-stage{
+  height:200px;
+  display:flex; justify-content:center; align-items:center;
+  margin-bottom:10px;
+  position:relative;
+}
+.fx-bio-svg{
+  width:160px; height:200px;
+}
+.fx-bio-rotate{
+  transform-origin:0 0;
+  animation:fxBioRotY 4s linear infinite;
+}
+@keyframes fxBioRotY{
+  0%{ transform:scaleX(1); }
+  50%{ transform:scaleX(-1); }
+  100%{ transform:scaleX(1); }
+}
+.fx-bio-scanline{
+  animation:fxBioScan 2s ease-in-out infinite;
+}
+@keyframes fxBioScan{
+  0%{ transform:translateY(-100px); opacity:0; }
+  10%{ opacity:1; }
+  90%{ opacity:1; }
+  100%{ transform:translateY(100px); opacity:0; }
+}
+.fx-bio-stats{
+  font-size:10px; line-height:1.6;
+}
+.fx-bio-stats > div{
+  display:flex; justify-content:space-between;
+  border-top:1px dashed currentColor;
+  padding:3px 0;
+  opacity:.85;
+}
+.fx-bio-stats span{ opacity:.6; }
+.fx-bio-stats b{ font-weight:400; text-shadow:0 0 4px currentColor; }
+
+/* ---- 3. SAT MAP ---- */
+.fx-map-header{
+  display:flex; justify-content:space-between;
+  font-size:10px; opacity:.7;
+  border-bottom:1px dashed currentColor;
+  padding-bottom:5px;
+  margin-bottom:8px;
+  letter-spacing:1px;
+}
+.fx-map-stage{
+  height:180px; overflow:hidden;
+  margin-bottom:8px;
+  border:1px solid currentColor;
+  background:rgba(0,0,0,.4);
+}
+.fx-map-svg{
+  width:100%; height:100%;
+}
+.fx-map-zoom{
+  transform-origin:150px 120px;
+  animation:fxMapZoom 2.4s ease-in-out forwards;
+}
+@keyframes fxMapZoom{
+  0%{ transform:scale(0.4); }
+  100%{ transform:scale(1.5); }
+}
+.fx-map-blink{
+  animation:fxMapBlink .6s steps(2) infinite;
+}
+@keyframes fxMapBlink{
+  50%{ opacity:0; }
+}
+.fx-map-stats{
+  display:flex; justify-content:space-between;
+  font-size:10px;
+}
+.fx-map-stats > div{
+  display:flex; gap:8px;
+}
+.fx-map-stats span{ opacity:.6; }
+.fx-map-stats b{ font-weight:400; text-shadow:0 0 4px currentColor; }
+
+/* ---- 4. DNA ---- */
+.fx-dna-stage{
+  display:flex; gap:14px;
+  margin-bottom:10px;
+  height:180px;
+}
+.fx-dna-svg{
+  width:60px; height:100%; flex-shrink:0;
+}
+.fx-dna-spin{
+  transform-origin:30px 125px;
+  animation:fxDnaSpin 3s linear infinite;
+}
+@keyframes fxDnaSpin{
+  0%{ transform:scaleX(1); }
+  50%{ transform:scaleX(-1); }
+  100%{ transform:scaleX(1); }
+}
+.fx-dna-bead{
+  animation:fxDnaPulse 1.4s ease-in-out infinite;
+}
+@keyframes fxDnaPulse{
+  0%,100%{ opacity:.7; }
+  50%{ opacity:1; }
+}
+.fx-dna-rung{
+  animation:fxDnaPulse 1.4s ease-in-out infinite;
+}
+.fx-dna-info{
+  flex:1;
+  display:flex; flex-direction:column;
+  font-size:10px;
+}
+.fx-dna-title{
+  font-size:10px; letter-spacing:2px;
+  border-bottom:1px dashed currentColor;
+  padding-bottom:4px;
+  margin-bottom:6px;
+}
+.fx-dna-seq{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  letter-spacing:2px;
+  line-height:1.4;
+  word-break:break-all;
+  flex:1;
+  text-shadow:0 0 4px currentColor;
+}
+.fx-dna-seq .fx-base{
+  display:inline-block;
+  animation:fxBaseIn .15s;
+}
+@keyframes fxBaseIn{
+  from{ opacity:0; transform:translateY(-4px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+.fx-dna-stats{
+  font-size:9px;
+  display:flex; flex-direction:column; gap:2px;
+  margin-top:6px;
+  border-top:1px dashed currentColor;
+  padding-top:4px;
+}
+.fx-dna-stats > div{
+  display:flex; justify-content:space-between;
+  opacity:.85;
+}
+.fx-dna-stats span{ opacity:.6; }
+.fx-dna-stats b{ font-weight:400; text-shadow:0 0 4px currentColor; }
+.fx-dna-bar{
+  height:4px;
+  border:1px solid;
+  overflow:hidden;
+}
+.fx-dna-fill{
+  height:100%; width:0;
+  animation:fxFill 2.6s linear forwards;
+}
+
+/* SPACE wave + ribbon */
 .fx-wave{
   position:fixed; top:0; bottom:0; left:0;
   width:200px;
@@ -1504,216 +1713,296 @@ function handleKey(e){
   }
 }
 
-// ========== ASCII POPUP EFFECTS (Enter key) ==========
-// แนว Awesome Type — กรอบ ASCII art retro terminal สุ่มตำแหน่ง
+// ========== ENTER VISUAL EFFECTS — 4 cinematic popups ==========
+const VISUAL_FX = ['loader', 'biometric', 'satmap', 'dna'];
+let lastFxIdx = -1;
 
-const ASCII_POPUPS = [
-  {
-    title: 'ACCESS GRANTED',
-    color: 'fg',
-    body: () => [
-      'AUTHENTICATION SUCCESSFUL',
-      '',
-      'USER     : r00t@nexus',
-      'PRIV     : 0xFFFF',
-      'SESSION  : 0x' + rndHex(8),
-      '',
-      pBar(100) + ' COMPLETE'
-    ]
-  },
-  {
-    title: 'ACCESS DENIED',
-    color: 'acc',
-    body: () => [
-      'AUTHENTICATION FAILURE',
-      '',
-      'INVALID CREDENTIALS',
-      'FIREWALL ENGAGED',
-      'TRACE INITIATED',
-      '',
-      pBar(rn(40)) + ' BLOCKED'
-    ]
-  },
-  {
-    title: 'DECRYPTING',
-    color: 'info',
-    body: () => [
-      'CIPHER : AES-256-GCM',
-      'KEY EX : ECDH P-384',
-      '',
-      pBar(rn(100)) + ' ' + (rn(100)+200) + 'GH/s',
-      '',
-      'EST. ' + rn(99) + 's REMAINING'
-    ]
-  },
-  {
-    title: 'PASSWORD CRACKED',
-    color: 'fg',
-    body: () => {
-      const p = ['p4ssw0rd', 'admin123', 'qwerty!@#', 'r00t_2024', 'hunter22'];
-      return [
-        'TARGET   : ' + rndIP(),
-        'METHOD   : DICTIONARY ATK',
-        'ATTEMPTS : ' + (rn(99000)+1000),
-        '',
-        'PASSWORD : ' + p[rn(p.length)],
-        '',
-        pBar(100) + ' DONE'
-      ];
-    }
-  },
-  {
-    title: 'INTRUSION DETECTED',
-    color: 'warn',
-    body: () => [
-      'ANOMALY ON PORT ' + rn(65535),
-      'SOURCE : ' + rndIP(),
-      'THREAT : CRITICAL',
-      '',
-      'COUNTERMEASURES ACTIVE',
-      pBar(rn(80)+20)
-    ]
-  },
-  {
-    title: 'PAYLOAD INJECTED',
-    color: 'fg',
-    body: () => [
-      'TARGET : ' + rndIP(),
-      'EXPLOIT: CVE-2024-' + rn(9999),
-      'BYTES  : ' + (rn(9999)) + ' KB',
-      '',
-      pBar(100) + ' DEPLOYED'
-    ]
-  },
-  {
-    title: 'KERNEL PANIC',
-    color: 'acc',
-    body: () => [
-      '[PANIC] not syncing',
-      '',
-      'RIP    : 0x' + rndHex(12),
-      'OOPS   : 0001 [#1] SMP',
-      'MODULES: stealth_rk',
-      '',
-      'SYSTEM HALTED'
-    ]
-  },
-  {
-    title: 'DATA EXTRACTED',
-    color: 'info',
-    body: () => [
-      'SOURCE : target.db',
-      'RECORDS: ' + (rn(99999)+10000),
-      'SIZE   : ' + (rn(999)) + '.' + rn(99) + ' MB',
-      '',
-      pBar(100) + ' UPLOADED',
-      '',
-      'CHANNEL: TOR/I2P'
-    ]
-  },
-  {
-    title: 'CONNECTION ESTAB',
-    color: 'fg',
-    body: () => [
-      'PROTOCOL : SSH-2.0',
-      'TARGET   : ' + rndIP() + ':22',
-      'CIPHER   : chacha20',
-      'LATENCY  : ' + rn(99) + 'ms',
-      '',
-      pBar(100) + ' SECURE'
-    ]
-  },
-  {
-    title: 'ROOTKIT DEPLOYED',
-    color: 'warn',
-    body: () => [
-      'MODULE : stealth_rk.ko',
-      'KERNEL : 6.' + rn(9) + '.' + rn(99),
-      'HOOK   : sys_call_table',
-      'STATUS : HIDDEN',
-      '',
-      pBar(100) + ' PERSISTENT'
-    ]
-  }
-];
-
-let lastPopupIdx = -1;
 function fireRandomVisual(){
   let idx;
-  do { idx = rn(ASCII_POPUPS.length); } while(idx === lastPopupIdx && ASCII_POPUPS.length > 1);
-  lastPopupIdx = idx;
-  spawnAsciiPopup(ASCII_POPUPS[idx]);
-}
-
-function spawnAsciiPopup(cfg){
-  const lines = cfg.body();
-  // คำนวณความกว้าง: หาบรรทัดยาวสุด
-  const maxLen = Math.max(cfg.title.length, ...lines.map(l => l.length));
-  const innerWidth = maxLen + 4;
-
-  // สร้าง ASCII frame
-  const top = '╔' + '═'.repeat(innerWidth) + '╗';
-  const titleBar = '║ ' + cfg.title.padEnd(innerWidth - 2, ' ') + ' ║';
-  const sep = '╠' + '═'.repeat(innerWidth) + '╣';
-  const bot = '╚' + '═'.repeat(innerWidth) + '╝';
-  const bodyLines = lines.map(l => '║ ' + l.padEnd(innerWidth - 2, ' ') + ' ║');
-
-  const fullText = [top, titleBar, sep, ...bodyLines, bot].join('\n');
-
-  const el = document.createElement('div');
-  el.className = 'ascii-pop fx-' + cfg.color;
-
-  // สุ่มตำแหน่ง — ไม่กลาง
-  const positions = [
-    { x: 5, y: 8 },     // top-left
-    { x: 55, y: 8 },    // top-right
-    { x: 30, y: 6 },    // top-mid
-    { x: 5, y: 45 },    // mid-left
-    { x: 60, y: 40 },   // mid-right
-    { x: 8, y: 70 },    // bot-left
-    { x: 50, y: 72 },   // bot-right
-    { x: 35, y: 50 },   // mid
-    { x: 15, y: 25 },
-    { x: 65, y: 60 },
-  ];
-  const pos = positions[rn(positions.length)];
-  // เพิ่ม jitter เล็กน้อย
-  const jx = (Math.random() - 0.5) * 8;
-  const jy = (Math.random() - 0.5) * 6;
-  el.style.left = (pos.x + jx) + '%';
-  el.style.top = (pos.y + jy) + '%';
-
-  el.innerHTML = '<pre>' + escapeHTML(fullText) + '</pre>';
-  document.body.appendChild(el);
-
-  // typing animation: ให้ ASCII ทยอยพิมพ์
-  const pre = el.querySelector('pre');
-  pre.textContent = '';
-  let i = 0;
-  const fullLen = fullText.length;
-  const speed = Math.max(2, Math.floor(fullLen / 60));
-  const typeInterval = setInterval(() => {
-    i += speed;
-    pre.textContent = fullText.substring(0, i);
-    if(i >= fullLen){
-      clearInterval(typeInterval);
-      pre.textContent = fullText;
-    }
-  }, 20);
-
-  // auto remove
-  const ttl = 2200 + Math.random() * 1500;
-  setTimeout(() => {
-    el.style.animation = 'asciiOut .25s forwards';
-    setTimeout(() => el.remove(), 250);
-  }, ttl);
-
+  do { idx = rn(VISUAL_FX.length); } while(idx === lastFxIdx && VISUAL_FX.length > 1);
+  lastFxIdx = idx;
+  const fx = VISUAL_FX[idx];
+  if(fx === 'loader') fxLoader();
+  else if(fx === 'biometric') fxBio();
+  else if(fx === 'satmap') fxSatMap();
+  else if(fx === 'dna') fxDNA();
   S.popups++;
   document.getElementById('stPopups').textContent = S.popups;
 }
 
-function escapeHTML(s){
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function rndScreenPos(w, h){
+  // สุ่มตำแหน่ง ไม่กระจุกกลาง
+  const margin = 30;
+  const maxX = window.innerWidth - w - margin;
+  const maxY = window.innerHeight - h - margin;
+  return {
+    x: margin + Math.random() * Math.max(maxX - margin, 0),
+    y: margin + Math.random() * Math.max(maxY - margin, 0)
+  };
+}
+
+function killFx(el, ttl = 2400){
+  setTimeout(() => {
+    el.style.animation = 'fxOut .25s forwards';
+    setTimeout(() => el.remove(), 250);
+  }, ttl);
+}
+
+// 1. ============ LOADER ANIMATION ============
+function fxLoader(){
+  const fg = fgColor();
+  const W = 320, H = 200;
+  const pos = rndScreenPos(W, H);
+  const el = document.createElement('div');
+  el.className = 'fx-card';
+  el.style.cssText = `left:${pos.x}px;top:${pos.y}px;width:${W}px;color:${fg};border-color:${fg};box-shadow:0 0 20px ${fg}`;
+
+  const labels = ['LOADING KERNEL MODULES', 'INITIALIZING CIPHER', 'CONNECTING TO C2 SERVER', 'COMPILING SHELLCODE', 'BYPASSING FIREWALL', 'SCANNING SUBNET', 'DECRYPTING ARCHIVE'];
+  const lbl = labels[rn(labels.length)];
+
+  el.innerHTML = `
+    <div class="fx-card-bar" style="background:${fg}"><span>:: SYSTEM ::</span><span>${rndHex(4)}</span></div>
+    <div class="fx-card-body">
+      <div class="fx-loader-title">${lbl}</div>
+      <div class="fx-loader-spin">
+        <div class="fx-spin-ring" style="border-top-color:${fg};border-right-color:${fg}"></div>
+        <div class="fx-spin-ring r2" style="border-bottom-color:${fg};border-left-color:${fg}"></div>
+        <div class="fx-spin-dot" style="background:${fg};box-shadow:0 0 8px ${fg}"></div>
+      </div>
+      <div class="fx-loader-bar" style="border-color:${fg}">
+        <div class="fx-loader-fill" style="background:${fg};box-shadow:0 0 8px ${fg}"></div>
+      </div>
+      <div class="fx-loader-pct" id="fxLpct">0%</div>
+      <div class="fx-loader-log" id="fxLlog"></div>
+    </div>
+  `;
+  document.body.appendChild(el);
+
+  // animate progress text
+  const pctEl = el.querySelector('#fxLpct');
+  const logEl = el.querySelector('#fxLlog');
+  const logs = ['> reading 0x'+rndHex(6), '> alloc '+rn(999)+'KB', '> hook syscall '+rn(99), '> patch '+rn(999), '> verify hash', '> ok'];
+  let p = 0;
+  const t = setInterval(() => {
+    p += 2 + rn(8);
+    if(p > 100) p = 100;
+    pctEl.textContent = p + '%';
+    if(rn(2) && logs.length){
+      const line = document.createElement('div');
+      line.textContent = logs[rn(logs.length)];
+      logEl.appendChild(line);
+      if(logEl.children.length > 3) logEl.removeChild(logEl.firstChild);
+    }
+    if(p >= 100) clearInterval(t);
+  }, 90);
+
+  killFx(el, 2600);
+}
+
+// 2. ============ BIOMETRIC HEAD SCAN (รูปคนหมุนๆ) ============
+function fxBio(){
+  const fg = fgColor();
+  const W = 340, H = 320;
+  const pos = rndScreenPos(W, H);
+  const el = document.createElement('div');
+  el.className = 'fx-card';
+  el.style.cssText = `left:${pos.x}px;top:${pos.y}px;width:${W}px;color:${fg};border-color:${fg};box-shadow:0 0 20px ${fg}`;
+
+  // wireframe head — เส้นรอบศีรษะหมุน 3D
+  el.innerHTML = `
+    <div class="fx-card-bar" style="background:${fg}"><span>:: BIOMETRIC ID ::</span><span>${rndHex(4)}</span></div>
+    <div class="fx-card-body">
+      <div class="fx-bio-stage">
+        <svg viewBox="-100 -120 200 240" class="fx-bio-svg" style="filter:drop-shadow(0 0 6px ${fg})">
+          <g class="fx-bio-rotate">
+            <!-- profile silhouette outline -->
+            <path d="M -25,-100 Q 35,-100 50,-50 Q 60,-10 50,30 Q 45,55 30,70 Q 25,85 30,100 L -50,100 Q -60,80 -55,55 Q -75,40 -70,15 Q -85,5 -75,-25 Q -70,-70 -25,-100 Z"
+                  fill="none" stroke="${fg}" stroke-width="1.5" opacity="0.95"/>
+            <!-- horizontal contour rings -->
+            <ellipse cx="-15" cy="-70" rx="50" ry="10" fill="none" stroke="${fg}" stroke-width="0.7" opacity="0.5"/>
+            <ellipse cx="-10" cy="-40" rx="62" ry="13" fill="none" stroke="${fg}" stroke-width="0.7" opacity="0.5"/>
+            <ellipse cx="-5"  cy="-10" rx="65" ry="14" fill="none" stroke="${fg}" stroke-width="0.7" opacity="0.6"/>
+            <ellipse cx="-5"  cy="20"  rx="60" ry="13" fill="none" stroke="${fg}" stroke-width="0.7" opacity="0.5"/>
+            <ellipse cx="-10" cy="50"  rx="50" ry="11" fill="none" stroke="${fg}" stroke-width="0.7" opacity="0.5"/>
+            <ellipse cx="-15" cy="80"  rx="42" ry="9"  fill="none" stroke="${fg}" stroke-width="0.7" opacity="0.4"/>
+            <!-- vertical contour -->
+            <path d="M -25,-100 Q -85,-25 -55,55 Q -50,80 -50,100" fill="none" stroke="${fg}" stroke-width="0.7" opacity="0.4"/>
+            <path d="M 0,-105 Q 30,-50 25,30 Q 25,75 -10,100" fill="none" stroke="${fg}" stroke-width="0.7" opacity="0.4"/>
+            <!-- key points -->
+            <circle cx="20" cy="-25" r="2" fill="${fg}"/>
+            <circle cx="35" cy="0" r="2" fill="${fg}"/>
+            <circle cx="25" cy="25" r="2" fill="${fg}"/>
+          </g>
+          <!-- scanning line -->
+          <line x1="-100" y1="0" x2="100" y2="0" stroke="${fg}" stroke-width="1.5" opacity="0.8" class="fx-bio-scanline"/>
+        </svg>
+      </div>
+      <div class="fx-bio-stats">
+        <div><span>FACE MATCH</span><b id="fxBioM">--</b></div>
+        <div><span>RETINA</span><b>VERIFIED</b></div>
+        <div><span>SUBJECT ID</span><b>#${rn(99999).toString().padStart(5,'0')}</b></div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(el);
+
+  const mEl = el.querySelector('#fxBioM');
+  let v = 0;
+  const t = setInterval(() => {
+    v += 3 + rn(7);
+    if(v > 99) v = 99;
+    mEl.textContent = v + '.' + rn(10) + '%';
+    if(v >= 99) clearInterval(t);
+  }, 100);
+
+  killFx(el, 2800);
+}
+
+// 3. ============ SATELLITE MAP ZOOM ============
+function fxSatMap(){
+  const fg = fgColor();
+  const W = 360, H = 300;
+  const pos = rndScreenPos(W, H);
+  const el = document.createElement('div');
+  el.className = 'fx-card';
+  el.style.cssText = `left:${pos.x}px;top:${pos.y}px;width:${W}px;color:${fg};border-color:${fg};box-shadow:0 0 20px ${fg}`;
+
+  // generate fake roads/blocks
+  let roads = '';
+  for(let i = 0; i < 8; i++){
+    const x = rn(280) + 10;
+    roads += `<line x1="${x}" y1="0" x2="${x + (rn(40)-20)}" y2="240" stroke="${fg}" stroke-width="0.6" opacity="0.4"/>`;
+  }
+  for(let i = 0; i < 7; i++){
+    const y = rn(220) + 10;
+    roads += `<line x1="0" y1="${y}" x2="300" y2="${y + (rn(30)-15)}" stroke="${fg}" stroke-width="0.6" opacity="0.4"/>`;
+  }
+  let blocks = '';
+  for(let i = 0; i < 14; i++){
+    const x = rn(270) + 10, y = rn(210) + 10;
+    const w = 12 + rn(28), h = 12 + rn(24);
+    blocks += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="${fg}" stroke-width="0.5" opacity="0.55"/>`;
+  }
+
+  const lat = (Math.random() * 90).toFixed(4);
+  const lng = (Math.random() * 180).toFixed(4);
+
+  el.innerHTML = `
+    <div class="fx-card-bar" style="background:${fg}"><span>:: SAT-LINK ::</span><span>GEO-${rndHex(4)}</span></div>
+    <div class="fx-card-body">
+      <div class="fx-map-header">
+        <span>LAT ${lat}°N</span>
+        <span>LNG ${lng}°E</span>
+      </div>
+      <div class="fx-map-stage">
+        <svg viewBox="0 0 300 240" class="fx-map-svg">
+          <!-- grid -->
+          <defs>
+            <pattern id="fxgrid${Date.now()}" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="${fg}" stroke-width="0.3" opacity="0.3"/>
+            </pattern>
+          </defs>
+          <rect width="300" height="240" fill="url(#fxgrid${Date.now()})"/>
+          <g class="fx-map-zoom">
+            ${roads}
+            ${blocks}
+            <!-- center crosshair target -->
+            <circle cx="150" cy="120" r="22" fill="none" stroke="${fg}" stroke-width="1.2"/>
+            <circle cx="150" cy="120" r="38" fill="none" stroke="${fg}" stroke-width="0.8" opacity="0.7"/>
+            <line x1="100" y1="120" x2="200" y2="120" stroke="${fg}" stroke-width="0.8"/>
+            <line x1="150" y1="70" x2="150" y2="170" stroke="${fg}" stroke-width="0.8"/>
+            <circle cx="150" cy="120" r="3" fill="${fg}" class="fx-map-blink"/>
+          </g>
+        </svg>
+      </div>
+      <div class="fx-map-stats">
+        <div><span>ZOOM</span><b id="fxMapZ">x1</b></div>
+        <div><span>TARGET</span><b>LOCKED</b></div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(el);
+
+  const zEl = el.querySelector('#fxMapZ');
+  let z = 1;
+  const t = setInterval(() => {
+    z += 1;
+    zEl.textContent = 'x' + z;
+    if(z >= 12) clearInterval(t);
+  }, 180);
+
+  killFx(el, 2800);
+}
+
+// 4. ============ DNA ANALYSIS ============
+function fxDNA(){
+  const fg = fgColor();
+  const W = 320, H = 280;
+  const pos = rndScreenPos(W, H);
+  const el = document.createElement('div');
+  el.className = 'fx-card';
+  el.style.cssText = `left:${pos.x}px;top:${pos.y}px;width:${W}px;color:${fg};border-color:${fg};box-shadow:0 0 20px ${fg}`;
+
+  // build DNA double helix as SVG with animated rungs
+  let helix = '';
+  const N = 18;
+  for(let i = 0; i < N; i++){
+    const phase = (i / N) * Math.PI * 4; // 2 full twists
+    const x1 = 30 + 50 * Math.sin(phase);
+    const x2 = 30 + 50 * Math.sin(phase + Math.PI);
+    const y = 10 + i * 13;
+    helix += `<circle cx="${x1}" cy="${y}" r="3" fill="${fg}" class="fx-dna-bead" style="animation-delay:${i*0.06}s"/>`;
+    helix += `<circle cx="${x2}" cy="${y}" r="3" fill="${fg}" class="fx-dna-bead" style="animation-delay:${i*0.06}s"/>`;
+    helix += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${fg}" stroke-width="1" opacity="0.5" class="fx-dna-rung" style="animation-delay:${i*0.06}s"/>`;
+  }
+  // sequence of bases ATCG
+  const bases = 'ATCG';
+  let seqArr = [];
+  for(let i = 0; i < 36; i++) seqArr.push(bases[rn(4)]);
+
+  el.innerHTML = `
+    <div class="fx-card-bar" style="background:${fg}"><span>:: DNA SEQUENCER ::</span><span>${rndHex(4)}</span></div>
+    <div class="fx-card-body">
+      <div class="fx-dna-stage">
+        <svg viewBox="0 0 60 250" class="fx-dna-svg" style="filter:drop-shadow(0 0 4px ${fg})">
+          <g class="fx-dna-spin">${helix}</g>
+        </svg>
+        <div class="fx-dna-info">
+          <div class="fx-dna-title">SEQUENCE ANALYSIS</div>
+          <div class="fx-dna-seq" id="fxSeq"></div>
+          <div class="fx-dna-stats">
+            <div><span>SAMPLE</span><b>HG-${rn(9999)}</b></div>
+            <div><span>CHROM</span><b>${rn(22)+1}</b></div>
+            <div><span>MATCH</span><b id="fxDnaM">--</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="fx-dna-bar" style="border-color:${fg}">
+        <div class="fx-dna-fill" style="background:${fg};box-shadow:0 0 8px ${fg}"></div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(el);
+
+  // animate sequence reading
+  const seqEl = el.querySelector('#fxSeq');
+  const mEl = el.querySelector('#fxDnaM');
+  let i = 0;
+  let m = 0;
+  const t = setInterval(() => {
+    if(i < seqArr.length){
+      const c = seqArr[i];
+      const colorMap = { A: fg, T: fg, C: fg, G: fg };
+      seqEl.innerHTML += `<span class="fx-base">${c}</span>`;
+      i++;
+    }
+    m += 3 + rn(5);
+    if(m > 99) m = 99;
+    mEl.textContent = m + '.' + rn(10) + '%';
+    if(i >= seqArr.length) clearInterval(t);
+  }, 70);
+
+  killFx(el, 2800);
 }
 
 // ========== SPACE EFFECT — text glitch wave (no explosion) ==========
